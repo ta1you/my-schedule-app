@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Simple personal schedule manager">
+    <meta name="theme-color" content="#4f46e5">
+    <title>My Schedule</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <header class="app-header">
+            <h1>My Schedule</h1>
+            <div class="header-controls">
+                <button type="button" class="btn btn-secondary" id="btn-today" aria-label="今日に戻る"
+                    style="font-size: 0.9rem; padding: 0.25rem 0.5rem;">
+                    今日
+                </button>
+            </div>
+        </header>
+        <main id="main-content">
+            <div id="schedule-list" class="schedule-list"></div>
+        </main>
+        <button id="fab-add" class="fab" aria-label="予定を追加">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </button>
+    </div>
+    <dialog id="schedule-modal" class="modal">
+        <form id="schedule-form" method="dialog">
+            <header class="modal-header">
+                <h2 id="modal-title">予定を追加</h2>
+                <button type="button" class="close-btn" id="modal-close">✕</button>
+            </header>
+            <div class="modal-body">
+                <input type="hidden" name="id">
+                <div class="form-group">
+                    <label for="title">タイトル</label>
+                    <input type="text" id="title" name="title" required placeholder="例: 会議" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="date">日付</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="start-time">開始</label>
+                        <input type="time" id="start-time" name="start-time">
+                    </div>
+                    <div class="form-group">
+                        <label for="end-time">終了</label>
+                        <input type="time" id="end-time" name="end-time">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="description">メモ</label>
+                    <textarea id="description" name="description" rows="3"></textarea>
+                </div>
+            </div>
+            <footer class="modal-footer">
+                <button type="button" class="btn btn-danger" id="btn-delete" hidden>削除</button>
+                <div class="spacer"></div>
+                <button type="button" class="btn btn-secondary" id="btn-cancel">キャンセル</button>
+                <button type="submit" class="btn btn-primary" id="btn-save">保存</button>
+            </footer>
+        </form>
+    </dialog>
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>
