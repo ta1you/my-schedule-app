@@ -1,6 +1,7 @@
 import { Storage } from './storage.js';
 import { UI } from './ui.js';
 import { generateId, getTodayString } from './utils.js';
+import { Calendar } from './calendar.js';
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
@@ -13,6 +14,7 @@ if ('serviceWorker' in navigator) {
 
 document.addEventListener('DOMContentLoaded', () => {
     UI.init();
+    Calendar.init();
     setupEventListeners();
 });
 
@@ -24,20 +26,62 @@ function setupEventListeners() {
     const cancelBtn = document.getElementById('btn-cancel');
     const deleteBtn = document.getElementById('btn-delete');
 
-
     // Scroll to Today
     document.getElementById('btn-today').addEventListener('click', () => {
-        // Simple reload for now to reset view or scroll to top
-        // Ideally we scroll to the "Today" header
+        // Switch to list view if in calendar view (optional, but makes sense)
+        if (document.getElementById('schedule-list').hidden) {
+            document.getElementById('btn-view-list').click();
+        }
+
         UI.render(); // Re-render to ensure fresh state
         const todayHeaders = Array.from(document.querySelectorAll('h3')).filter(h => h.textContent.includes('今日'));
         if (todayHeaders.length > 0) {
             todayHeaders[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else {
-            // If no today, maybe scroll top
             document.getElementById('main-content').scrollTop = 0;
         }
     });
+
+    // View Switching
+    const btnList = document.getElementById('btn-view-list');
+    const btnCalendar = document.getElementById('btn-view-calendar');
+    const listView = document.getElementById('schedule-list');
+    const calendarView = document.getElementById('calendar-view');
+
+    // Helper to set view state; uses both attribute and fallback class for robustness
+    function setView(showList) {
+        if (showList) {
+            listView.hidden = false;
+            calendarView.hidden = true;
+            listView.classList.remove('is-hidden');
+            calendarView.classList.add('is-hidden');
+            // Inline style fallback
+            listView.style.display = '';
+            calendarView.style.display = 'none';
+            btnList.classList.add('active');
+            btnCalendar.classList.remove('active');
+            fab.hidden = false;
+            fab.classList.remove('is-hidden');
+        } else {
+            listView.hidden = true;
+            calendarView.hidden = false;
+            listView.classList.add('is-hidden');
+            calendarView.classList.remove('is-hidden');
+            // Inline style fallback
+            listView.style.display = 'none';
+            calendarView.style.display = '';
+            btnList.classList.remove('active');
+            btnCalendar.classList.add('active');
+            fab.hidden = true;
+            fab.classList.add('is-hidden');
+        }
+    }
+
+    // initial state: show list
+    setView(true);
+
+    btnList.addEventListener('click', () => setView(true));
+    btnCalendar.addEventListener('click', () => setView(false));
 
     // Open Modal (Add)
     fab.addEventListener('click', () => {
@@ -70,6 +114,7 @@ function setupEventListeners() {
 
         Storage.save(schedule);
         UI.render();
+        Calendar.refresh();
         closeModal();
     });
 
@@ -79,6 +124,7 @@ function setupEventListeners() {
         if (id && confirm('この予定を削除しますか？')) {
             Storage.delete(id);
             UI.render();
+            Calendar.refresh();
             closeModal();
         }
     });

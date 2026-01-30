@@ -9,7 +9,6 @@
     <meta name="theme-color" content="#4f46e5">
     <title>My Schedule</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -18,14 +17,23 @@
         <header class="app-header">
             <h1>My Schedule</h1>
             <div class="header-controls">
+                <div class="view-toggle">
+                    <button type="button" class="btn btn-secondary active" id="btn-view-list" aria-label="リスト表示">
+                        リスト
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btn-view-calendar" aria-label="カレンダー表示">
+                        2026年
+                    </button>
+                </div>
                 <button type="button" class="btn btn-secondary" id="btn-today" aria-label="今日に戻る"
-                    style="font-size: 0.9rem; padding: 0.25rem 0.5rem;">
+                    style="font-size: 0.9rem; padding: 0.25rem 0.5rem; margin-left: 0.5rem;">
                     今日
                 </button>
             </div>
         </header>
         <main id="main-content">
             <div id="schedule-list" class="schedule-list"></div>
+            <div id="calendar-view" class="calendar-view" hidden></div>
         </main>
         <button id="fab-add" class="fab" aria-label="予定を追加">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
