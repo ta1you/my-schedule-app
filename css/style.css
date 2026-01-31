@@ -118,7 +118,7 @@ body {
     padding: var(--spacing-md);
     padding-bottom: calc(80px + var(--safe-area-bottom));
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-start;
     width: 100%;
 }
@@ -379,20 +379,19 @@ select:focus {
 
 .calendar-controls {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     padding: var(--spacing-md);
     margin-bottom: var(--spacing-md);
     background: var(--surface-color);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
+    gap: var(--spacing-md);
 }
 
 .calendar-controls h2 {
     margin: 0;
     font-size: 1.2rem;
-    flex-grow: 1;
-    text-align: center;
 }
 
 .calendar-grid {
@@ -401,7 +400,7 @@ select:focus {
     gap: var(--spacing-md);
     width: 100%;
     max-width: 840px;
-    margin: 0 auto;
+    margin: 0;
 }
 
 .calendar-month {
@@ -411,7 +410,7 @@ select:focus {
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
     width: 100%;
-    margin: 0 auto;
+    margin: 0;
     max-width: 420px;
 }
 
