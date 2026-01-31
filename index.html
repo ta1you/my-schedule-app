@@ -32,7 +32,15 @@
             </div>
         </header>
         <main id="main-content">
-            <div id="schedule-list" class="schedule-list"></div>
+            <div id="list-view-container" style="width: 100%;">
+                <div class="category-tabs">
+                    <button type="button" class="tab-btn active" data-category="all">全て</button>
+                    <button type="button" class="tab-btn" data-category="バイト">バイト</button>
+                    <button type="button" class="tab-btn" data-category="学校">学校</button>
+                    <button type="button" class="tab-btn" data-category="その他">その他</button>
+                </div>
+                <div id="schedule-list" class="schedule-list"></div>
+            </div>
             <div id="calendar-view" class="calendar-view" hidden></div>
         </main>
         <button id="fab-add" class="fab" aria-label="予定を追加">
@@ -45,14 +53,24 @@
     <dialog id="schedule-modal" class="modal">
         <form id="schedule-form" method="dialog">
             <header class="modal-header">
-                <h2 id="modal-title">予定を追加</h2>
-                <button type="button" class="close-btn" id="modal-close">✕</button>
+                <div class="modal-header-content">
+                    <div style="display: flex; align-items: center; gap: var(--spacing-sm); flex: 1;">
+                        <select id="modal-category-select" class="modal-title-select">
+                            <option value="その他">その他</option>
+                            <option value="バイト">バイト</option>
+                            <option value="学校">学校</option>
+                        </select>
+                        <h2 id="modal-title" style="margin: 0; font-size: 1.1rem;">予定を追加</h2>
+                    </div>
+                    <button type="button" class="close-btn" id="modal-close">✕</button>
+                </div>
             </header>
             <div class="modal-body">
                 <input type="hidden" name="id">
                 <div class="form-group">
                     <label for="title">タイトル</label>
-                    <input type="text" id="title" name="title" required placeholder="例: 会議" autocomplete="off">
+                    <input type="text" id="title" name="title" autocomplete="off" style="cursor: pointer;">
+
                 </div>
                 <div class="form-group">
                     <label for="date">日付</label>

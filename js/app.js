@@ -83,6 +83,28 @@ function setupEventListeners() {
     btnList.addEventListener('click', () => setView(true));
     btnCalendar.addEventListener('click', () => setView(false));
 
+    // Modal category select
+    let selectedCategory = 'その他';
+    const modalCategorySelect = document.getElementById('modal-category-select');
+    const titleInput = document.getElementById('title');
+    
+    modalCategorySelect.addEventListener('change', (e) => {
+        selectedCategory = e.target.value;
+    });
+
+    // Click title input to open category dropdown
+    titleInput.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        modalCategorySelect.focus();
+        // Use showPicker() if available, otherwise click
+        if (modalCategorySelect.showPicker) {
+            modalCategorySelect.showPicker();
+        } else {
+            modalCategorySelect.click();
+        }
+    });
+
     // Open Modal (Add)
     fab.addEventListener('click', () => {
         form.reset();
@@ -90,6 +112,9 @@ function setupEventListeners() {
         form.id.value = '';
         document.getElementById('modal-title').textContent = '予定を追加';
         deleteBtn.hidden = true;
+        // Reset category select to default
+        selectedCategory = 'その他';
+        modalCategorySelect.value = 'その他';
         modal.showModal();
     });
 
@@ -109,6 +134,7 @@ function setupEventListeners() {
             startTime: formData.get('start-time'),
             endTime: formData.get('end-time'),
             description: formData.get('description'),
+            category: selectedCategory,
             createdAt: new Date().toISOString()
         };
 
@@ -140,6 +166,10 @@ function setupEventListeners() {
         document.getElementById('start-time').value = schedule.startTime;
         document.getElementById('end-time').value = schedule.endTime;
         document.getElementById('description').value = schedule.description;
+        
+        // Set category select
+        selectedCategory = schedule.category || 'その他';
+        modalCategorySelect.value = selectedCategory;
 
         document.getElementById('modal-title').textContent = '予定を編集';
         deleteBtn.hidden = false;

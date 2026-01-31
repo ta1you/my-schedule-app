@@ -2,13 +2,37 @@ import { Storage } from './storage.js';
 import { getTodayString } from './utils.js';
 
 export const UI = {
+    currentCategory: 'all',
+
     init() {
         this.listElement = document.getElementById('schedule-list');
         this.render();
+        this.setupTabEvents();
+    },
+
+    setupTabEvents() {
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                // Remove active class from all tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                e.target.classList.add('active');
+                // Set current category and re-render
+                this.currentCategory = e.target.dataset.category;
+                this.render();
+            });
+        });
     },
 
     render() {
-        const schedules = Storage.getAll();
+        let schedules = Storage.getAll();
+        
+        // Filter by category if not 'all'
+        if (this.currentCategory !== 'all') {
+            schedules = schedules.filter(s => (s.category || 'その他') === this.currentCategory);
+        }
+
         const today = getTodayString();
         // Simple filter for today/future for now, or just show all sorted
         // Let's grouping by date for better UX
@@ -50,9 +74,13 @@ export const UI = {
                 ? `${schedule.startTime} - ${schedule.endTime}`
                 : (schedule.startTime || '終日');
 
+            const category = schedule.category || 'その他';
+            const categoryClass = `category-badge category-${category}`;
+
             el.innerHTML = `
                 <div class="schedule-time">${timeStr}</div>
                 <div class="schedule-title">${escapeHtml(schedule.title)}</div>
+                <div class="${categoryClass}">${escapeHtml(category)}</div>
                 ${schedule.description ? `<div class="schedule-desc">${escapeHtml(schedule.description)}</div>` : ''}
             `;
             this.listElement.appendChild(el);
