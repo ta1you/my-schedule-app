@@ -12,6 +12,28 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+// Auto-unregister service workers on mobile once to force fresh assets
+(function forceUnregisterSWOnMobile() {
+    if (!('serviceWorker' in navigator)) return;
+    if (sessionStorage.getItem('sw_update_forced')) return; // avoid reload loop
+
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/.test(navigator.userAgent) || window.innerWidth <= 800;
+    if (!isMobile) return;
+
+    window.addEventListener('load', async () => {
+        try {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            if (!regs || regs.length === 0) return;
+            await Promise.all(regs.map(r => r.unregister()));
+            sessionStorage.setItem('sw_update_forced', '1');
+            console.log('Service workers unregistered to force update. Reloading...');
+            location.reload();
+        } catch (e) {
+            console.warn('SW unregister failed', e);
+        }
+    });
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     UI.init();
     Calendar.init();
