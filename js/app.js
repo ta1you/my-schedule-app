@@ -50,6 +50,7 @@ function setupEventListeners() {
 
     // Helper to set view state; uses both attribute and fallback class for robustness
     function setView(showList) {
+        const categoryTabs = document.querySelector('.category-tabs');
         if (showList) {
             listView.hidden = false;
             calendarView.hidden = true;
@@ -62,6 +63,11 @@ function setupEventListeners() {
             btnCalendar.classList.remove('active');
             fab.hidden = false;
             fab.classList.remove('is-hidden');
+            // Show category tabs
+            if (categoryTabs) {
+                categoryTabs.hidden = false;
+                categoryTabs.style.display = '';
+            }
         } else {
             listView.hidden = true;
             calendarView.hidden = false;
@@ -74,6 +80,11 @@ function setupEventListeners() {
             btnCalendar.classList.add('active');
             fab.hidden = true;
             fab.classList.add('is-hidden');
+            // Hide category tabs
+            if (categoryTabs) {
+                categoryTabs.hidden = true;
+                categoryTabs.style.display = 'none';
+            }
         }
     }
 
