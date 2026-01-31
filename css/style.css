@@ -566,3 +566,62 @@ select:focus {
     background-color: rgba(168, 85, 247, 0.1);
     color: #6b21a8;
 }
+
+/* Responsive improvements for small screens (mobile) */
+@media (max-width: 800px) {
+    #main-content {
+        flex-direction: column;
+        align-items: center;
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+    }
+
+    .calendar-view {
+        width: 100%;
+        padding: 0.5rem;
+    }
+
+    .calendar-grid {
+        max-width: 100%;
+        width: 100%;
+        padding: 0;
+        margin: 0 auto;
+        justify-items: center;
+    }
+
+    .calendar-month {
+        width: 100%;
+        max-width: calc(100% - 2rem);
+        margin: 0.5rem auto;
+        padding: 0.5rem;
+        box-sizing: border-box;
+    }
+
+    .month-days-grid {
+        gap: 4px;
+    }
+
+    .day-cell {
+        min-height: 48px;
+        padding: 6px 4px;
+        border-radius: 6px;
+    }
+
+    .day-number {
+        font-size: 0.95rem;
+    }
+
+    .calendar-controls h2 {
+        font-size: 1rem;
+    }
+
+    .category-tabs {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+    }
+
+    .modal {
+        width: 96%;
+        max-width: 96%;
+    }
+}
