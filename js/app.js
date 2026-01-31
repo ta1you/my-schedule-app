@@ -2,6 +2,7 @@ import { Storage } from './storage.js';
 import { UI } from './ui.js';
 import { generateId, getTodayString } from './utils.js';
 import { Calendar } from './calendar.js';
+import { Finance } from './finance.js';
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
@@ -67,12 +68,17 @@ function setupEventListeners() {
     // View Switching
     const btnList = document.getElementById('btn-view-list');
     const btnCalendar = document.getElementById('btn-view-calendar');
+    const btnFinance = document.getElementById('btn-finance');
     const listView = document.getElementById('schedule-list');
     const calendarView = document.getElementById('calendar-view');
+    const financeView = document.getElementById('finance-view');
 
     // Helper to set view state; uses both attribute and fallback class for robustness
     function setView(showList) {
         const categoryTabs = document.querySelector('.category-tabs');
+        // always hide finance view when switching to list/calendar
+        if (financeView) financeView.hidden = true;
+        if (btnFinance) btnFinance.classList.remove('active');
         if (showList) {
             listView.hidden = false;
             calendarView.hidden = true;
@@ -115,6 +121,58 @@ function setupEventListeners() {
 
     btnList.addEventListener('click', () => setView(true));
     btnCalendar.addEventListener('click', () => setView(false));
+    if (btnFinance) {
+        btnFinance.addEventListener('click', () => {
+            // hide list and calendar, show finance
+            listView.hidden = true;
+            calendarView.hidden = true;
+            financeView.hidden = false;
+            btnList.classList.remove('active');
+            btnCalendar.classList.remove('active');
+            btnFinance.classList.add('active');
+            // hide fab and category tabs
+            const fab = document.getElementById('fab-add');
+            if (fab) fab.hidden = true;
+            const categoryTabs = document.querySelector('.category-tabs');
+            if (categoryTabs) categoryTabs.hidden = true;
+            // set default date to today in the mini-form
+            const fdate = document.getElementById('finance-date');
+            if (fdate) fdate.value = getTodayString();
+            // render chart (use exposed renderer if available)
+            const canvas = document.getElementById('finance-chart');
+            if (window.renderFinanceView) window.renderFinanceView(); else Finance.renderChart(canvas);
+        });
+    }
+
+    // Handle finance form submission
+    const financeForm = document.getElementById('finance-form');
+    if (financeForm) {
+        financeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const date = document.getElementById('finance-date').value;
+            const type = document.getElementById('finance-type').value;
+            const investment = Number(document.getElementById('finance-investment').value) || 0;
+            const payout = Number(document.getElementById('finance-payout').value) || 0;
+            const note = document.getElementById('finance-note').value || '';
+            const amount = payout - investment;
+            const item = {
+                id: generateId(),
+                date,
+                type,
+                investment,
+                payout,
+                amount,
+                note
+            };
+            Finance.save(item);
+            const canvas = document.getElementById('finance-chart');
+            Finance.renderChart(canvas);
+            // clear amount and note
+            document.getElementById('finance-investment').value = '';
+            document.getElementById('finance-payout').value = '';
+            document.getElementById('finance-note').value = '';
+        });
+    }
 
     // Modal category select
     let selectedCategory = 'その他';
@@ -208,4 +266,123 @@ function setupEventListeners() {
         deleteBtn.hidden = false;
         modal.showModal();
     };
+
+    // Finance interactions: tooltip, mode toggle, entries list
+    function setupFinanceInteractions() {
+        const canvas = document.getElementById('finance-chart');
+        const modeSelect = document.getElementById('finance-mode');
+        const tooltip = document.getElementById('finance-tooltip');
+        const entriesDiv = document.getElementById('finance-entries');
+
+        if (!canvas) {
+            console.warn('finance-chart canvas not found');
+            return;
+        }
+
+        function pad(n){ return n < 10 ? '0'+n : ''+n; }
+
+        function renderAndPopulate() {
+            try {
+                const mode = (modeSelect && modeSelect.value) || 'cumulative';
+                Finance.renderChart(canvas, mode);
+                populateEntries();
+            } catch (e) {
+                console.error('renderChart error:', e);
+            }
+        }
+
+        function populateEntries() {
+            if (!entriesDiv) return;
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const items = Finance.getMonthlyEntries(year, month);
+            if (!items || items.length === 0) {
+                entriesDiv.innerHTML = `<div style="color:var(--text-secondary)">該当月の収支がありません</div>`;
+                return;
+            }
+
+            entriesDiv.innerHTML = items.map(it => {
+                const day = new Date(it.date).getDate();
+                const amt = Number(it.amount) || (Number(it.payout)||0) - (Number(it.investment)||0);
+                return `
+                    <div class="finance-entry">
+                        <div class="meta">${day}日 · ${it.type || 'その他'} · ${it.note || ''}</div>
+                        <div class="meta">投:${(it.investment||0).toLocaleString()} 回:${(it.payout||0).toLocaleString()}</div>
+                        <div class="amount">￥${amt.toLocaleString()}</div>
+                        <button class="btn-del" data-id="${it.id}" aria-label="削除">✕</button>
+                    </div>`;
+            }).join('');
+        }
+
+        // delegate delete
+        if (entriesDiv) entriesDiv.addEventListener('click', (e) => {
+            const b = e.target.closest('.btn-del');
+            if (!b) return;
+            const id = b.dataset.id;
+            if (!id) return;
+            if (!confirm('この収支を削除しますか？')) return;
+            Finance.delete(id);
+            renderAndPopulate();
+        });
+
+        // tooltip interactions
+        if (canvas) {
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const points = Finance.getLastPoints() || [];
+                let closest = null;
+                let minDist = 12; // px
+                for (let p of points) {
+                    const dx = x - p.x;
+                    const dy = y - p.y;
+                    const d = Math.hypot(dx, dy);
+                    if (d < minDist) { closest = p; minDist = d; }
+                }
+                if (closest) {
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = now.getMonth();
+                    const day = closest.day || Math.ceil((closest.x - 36) / ((canvas.clientWidth - 72) / new Date(year, month + 1, 0).getDate()));
+                    const dateStr = `${year}-${pad(month+1)}-${pad(day)}`;
+                    const items = Finance.getMonthlyEntries(year, month).filter(it => it.date === dateStr);
+                    let totalInvest = 0, totalPayout = 0;
+                    const rows = items.map(it => {
+                        totalInvest += Number(it.investment)||0;
+                        totalPayout += Number(it.payout)||0;
+                        const amt = Number(it.amount) || (Number(it.payout)||0) - (Number(it.investment)||0);
+                        return `<div style="margin-top:4px;">${it.type || 'その他'} ${it.note ? '・'+it.note : ''}<br>投:${(it.investment||0).toLocaleString()} 回:${(it.payout||0).toLocaleString()} 差額:￥${amt.toLocaleString()}</div>`;
+                    }).join('');
+                    const net = totalPayout - totalInvest;
+                    if (tooltip) {
+                        tooltip.innerHTML = `<div style="font-weight:700;">${day}日</div><div>投:${totalInvest.toLocaleString()} 回:${totalPayout.toLocaleString()} 差額:￥${net.toLocaleString()}</div>${rows}`;
+                        tooltip.hidden = false;
+                        tooltip.style.left = `${e.clientX - rect.left}px`;
+                        tooltip.style.top = `${e.clientY - rect.top - 12}px`;
+                    }
+                } else if (tooltip) {
+                    tooltip.hidden = true;
+                }
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                const tooltip = document.getElementById('finance-tooltip');
+                if (tooltip) tooltip.hidden = true;
+            });
+        }
+
+        // mode change
+        if (modeSelect) modeSelect.addEventListener('change', renderAndPopulate);
+
+        // expose a renderer so other handlers can call it
+        window.renderFinanceView = renderAndPopulate;
+
+        // initial populate
+        renderAndPopulate();
+    }
+
+    setupFinanceInteractions();
 }
+
