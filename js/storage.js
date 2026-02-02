@@ -31,5 +31,39 @@ export const Storage = {
     getById(id) {
         const schedules = this.getAll();
         return schedules.find(s => s.id === id);
+    },
+
+    // Backup & Restore
+    exportAll() {
+        const schedules = localStorage.getItem(SCHEDULE_KEY);
+        const finance = localStorage.getItem('my_finance_pwa_data');
+        const data = {
+            schedules: schedules ? JSON.parse(schedules) : [],
+            finance: finance ? JSON.parse(finance) : [],
+            timestamp: new Date().toISOString(),
+            version: 1
+        };
+        return JSON.stringify(data, null, 2);
+    },
+
+    importAll(jsonString) {
+        try {
+            const data = JSON.parse(jsonString);
+            if (!data.schedules || !data.finance) {
+                alert('無効なデータ形式です。');
+                return false;
+            }
+            if (!confirm('現在のデータをすべて上書きして復元しますか？\n（この操作は取り消せません）')) {
+                return false;
+            }
+
+            localStorage.setItem(SCHEDULE_KEY, JSON.stringify(data.schedules));
+            localStorage.setItem('my_finance_pwa_data', JSON.stringify(data.finance));
+            return true;
+        } catch (e) {
+            console.error('Import failed', e);
+            alert('データの読み込みに失敗しました。');
+            return false;
+        }
     }
 };

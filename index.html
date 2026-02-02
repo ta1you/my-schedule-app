@@ -17,18 +17,8 @@
         <header class="app-header">
             <h1>My Schedule</h1>
             <div class="header-controls">
-                <div class="view-toggle">
-                    <button type="button" class="btn btn-secondary active" id="btn-view-list" aria-label="リスト表示">
-                        リスト
-                    </button>
-                    <button type="button" class="btn btn-secondary" id="btn-view-calendar" aria-label="カレンダー表示">
-                        カレンダー
-                    </button>
-                    <button type="button" class="btn btn-secondary" id="btn-finance" aria-label="収支表示">
-                        収支
-                    </button>
-                </div>
-                <button type="button" class="btn btn-secondary" id="btn-today" aria-label="今日に戻る">
+                <button type="button" class="btn btn-secondary" id="btn-today" aria-label="今日に戻る"
+                    style="white-space: nowrap; font-size: 0.8rem; padding: 4px 10px;">
                     今日
                 </button>
             </div>
@@ -81,6 +71,21 @@
                 <div id="finance-legend" style="margin-top:0.5rem; color:var(--text-secondary); font-size:0.9rem;">
                 </div>
                 <div id="finance-entries" class="finance-entries" style="margin-top:0.75rem;"></div>
+
+                <div
+                    style="margin-top: 2rem; border-top: 1px solid var(--border-light); padding-top: 1rem; padding-bottom: 2rem;">
+                    <h4 style="margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">データ管理</h4>
+                    <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                        <button type="button" class="btn btn-secondary" id="btn-backup" style="font-size: 0.8rem;">
+                            💾 保存
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="btn-restore-trigger"
+                            style="font-size: 0.8rem;">
+                            📂 復元
+                        </button>
+                        <input type="file" id="file-restore" accept=".json" style="display: none;">
+                    </div>
+                </div>
             </div>
         </main>
         <button id="fab-add" class="fab" aria-label="予定を追加">
@@ -139,6 +144,22 @@
             </footer>
         </form>
     </dialog>
+
+    <nav class="bottom-nav">
+        <button type="button" class="nav-item active" id="btn-view-list">
+            <span class="nav-icon">📝</span>
+            <span class="nav-label">リスト</span>
+        </button>
+        <button type="button" class="nav-item" id="btn-view-calendar">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">カレンダー</span>
+        </button>
+        <button type="button" class="nav-item" id="btn-finance">
+            <span class="nav-icon">💰</span>
+            <span class="nav-label">収支</span>
+        </button>
+    </nav>
+
     <script type="module" src="js/app.js"></script>
 </body>
 
