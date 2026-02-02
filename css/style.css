@@ -681,12 +681,34 @@ select:focus {
     }
 
     .app-header {
-        padding: 0 var(--space-sm);
-        height: 50px;
+        padding: 0 0.25rem;
+        /* Minimize padding */
+        height: auto;
+        min-height: 50px;
+        flex-wrap: nowrap !important;
+        gap: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
 
     .app-header h1 {
-        font-size: 1.1rem;
+        font-size: 1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-shrink: 1;
+        min-width: 0;
+        margin-right: auto;
+    }
+
+    /* Force buttons to stay on one line */
+    .view-toggle .btn,
+    .header-controls .btn {
+        white-space: nowrap !important;
+        padding: 4px 6px;
+        font-size: 0.75rem;
+        flex-shrink: 0;
     }
 
     .schedule-item {
