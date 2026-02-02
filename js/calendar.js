@@ -4,8 +4,8 @@ export const Calendar = {
     init() {
         this.container = document.getElementById('calendar-view');
         const today = new Date();
-        this.currentYear = 2026; // Default as per requirements, or we could use today.getFullYear()
-        this.currentMonth = 0; // 0 = Jan
+        this.currentYear = today.getFullYear();
+        this.currentMonth = today.getMonth();
         this.render();
     },
 
@@ -135,9 +135,13 @@ export const Calendar = {
                 const eventsContainer = document.createElement('div');
                 eventsContainer.className = 'day-events';
 
-                daySchedules.forEach(schedule => {
+                const maxEvents = 3;
+                const displayEvents = daySchedules.slice(0, maxEvents);
+                const moreCount = daySchedules.length - maxEvents;
+
+                displayEvents.forEach(schedule => {
                     const eventDot = document.createElement('div');
-                    eventDot.className = 'event-dot';
+                    eventDot.className = `event-dot type-${schedule.category || 'その他'}`;
                     const eventTitle = document.createElement('span');
                     eventTitle.textContent = schedule.title;
                     eventDot.appendChild(eventTitle);
@@ -148,6 +152,13 @@ export const Calendar = {
                     };
                     eventsContainer.appendChild(eventDot);
                 });
+
+                if (moreCount > 0) {
+                    const moreDot = document.createElement('div');
+                    moreDot.className = 'event-dot more-count';
+                    moreDot.textContent = `+${moreCount}`;
+                    eventsContainer.appendChild(moreDot);
+                }
                 dayCell.appendChild(eventsContainer);
             }
 
