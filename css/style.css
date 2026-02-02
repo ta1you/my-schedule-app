@@ -105,19 +105,23 @@ body {
 
 /* Header */
 .app-header {
-    height: var(--header-height);
-    background: var(--bg-surface-translucent);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border-light);
+    height: auto;
+    min-height: 60px;
+    background: rgba(255, 255, 255, 0.85);
+    /* Hardcode for safety or use var */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
     display: flex;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: space-between;
-    padding: 0 var(--space-md);
+    padding: 0.75rem 1rem;
     position: sticky;
     top: 0;
     z-index: 50;
     transition: all 0.3s ease;
+    gap: 0.5rem;
 }
 
 .app-header h1 {
@@ -127,7 +131,9 @@ body {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
+    margin-right: auto;
+    /* Push controls to right */
 }
 
 .header-controls {
@@ -151,23 +157,24 @@ body {
     scroll-behavior: smooth;
 }
 
-/* View Toggle (Segmented Control) */
+/* View Toggle (Modern Segmented Control) */
 .view-toggle {
     display: inline-flex;
-    background: #e2e8f0;
-    padding: 4px;
-    border-radius: var(--radius-md);
-    gap: 2px;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.02);
 }
 
 .view-toggle .btn {
-    padding: 4px 12px;
+    padding: 5px 12px;
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-secondary);
     background: transparent;
-    border-radius: 6px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 9px;
+    border: none;
+    transition: all 0.2s ease;
 }
 
 .view-toggle .btn:hover {
@@ -175,9 +182,9 @@ body {
 }
 
 .view-toggle .btn.active {
-    background: var(--bg-surface);
+    background: #ffffff;
     color: var(--primary-dark);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 1px rgba(0, 0, 0, 0.03);
 }
 
 /* Buttons */
