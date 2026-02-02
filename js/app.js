@@ -372,46 +372,7 @@ function setupEventListeners() {
     }
 
     // Backup & Restore
-    const btnBackup = document.getElementById('btn-backup');
-    const btnRestoreTrigger = document.getElementById('btn-restore-trigger');
-    const fileRestore = document.getElementById('file-restore');
 
-    if (btnBackup) {
-        btnBackup.addEventListener('click', () => {
-            const data = Storage.exportAll();
-            const blob = new Blob([data], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `my-schedule-backup-${getTodayString().replace(/-/g, '')}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        });
-    }
-
-    if (btnRestoreTrigger && fileRestore) {
-        btnRestoreTrigger.addEventListener('click', () => {
-            fileRestore.click();
-        });
-
-        fileRestore.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const success = Storage.importAll(e.target.result);
-                if (success) {
-                    alert('復元が完了しました。ページを再読み込みします。');
-                    location.reload();
-                }
-            };
-            reader.readAsText(file);
-            // reset input
-            e.target.value = '';
-        });
-    }
     setupFinanceInteractions();
 }
 
