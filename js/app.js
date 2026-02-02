@@ -174,25 +174,15 @@ function setupEventListeners() {
         });
     }
 
-    // Modal category select
+    // Modal category management (derived from title)
     let selectedCategory = 'その他';
-    const modalCategorySelect = document.getElementById('modal-category-select');
     const titleInput = document.getElementById('title');
-    
-    modalCategorySelect.addEventListener('change', (e) => {
-        selectedCategory = e.target.value;
-    });
 
-    // Click title input to open category dropdown
-    titleInput.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        modalCategorySelect.focus();
-        // Use showPicker() if available, otherwise click
-        if (modalCategorySelect.showPicker) {
-            modalCategorySelect.showPicker();
-        } else {
-            modalCategorySelect.click();
+    // Auto-select category when title matches options from datalist
+    titleInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        if (['バイト', '学校', 'その他'].includes(val)) {
+            selectedCategory = val;
         }
     });
 
@@ -203,9 +193,8 @@ function setupEventListeners() {
         form.id.value = '';
         document.getElementById('modal-title').textContent = '予定を追加';
         deleteBtn.hidden = true;
-        // Reset category select to default
+        // Reset category to default
         selectedCategory = 'その他';
-        modalCategorySelect.value = 'その他';
         modal.showModal();
     });
 
@@ -257,10 +246,9 @@ function setupEventListeners() {
         document.getElementById('start-time').value = schedule.startTime;
         document.getElementById('end-time').value = schedule.endTime;
         document.getElementById('description').value = schedule.description;
-        
-        // Set category select
+
+        // Set category
         selectedCategory = schedule.category || 'その他';
-        modalCategorySelect.value = selectedCategory;
 
         document.getElementById('modal-title').textContent = '予定を編集';
         deleteBtn.hidden = false;
@@ -279,7 +267,7 @@ function setupEventListeners() {
             return;
         }
 
-        function pad(n){ return n < 10 ? '0'+n : ''+n; }
+        function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
         function renderAndPopulate() {
             try {
@@ -304,11 +292,11 @@ function setupEventListeners() {
 
             entriesDiv.innerHTML = items.map(it => {
                 const day = new Date(it.date).getDate();
-                const amt = Number(it.amount) || (Number(it.payout)||0) - (Number(it.investment)||0);
+                const amt = Number(it.amount) || (Number(it.payout) || 0) - (Number(it.investment) || 0);
                 return `
                     <div class="finance-entry">
                         <div class="meta">${day}日 · ${it.type || 'その他'} · ${it.note || ''}</div>
-                        <div class="meta">投:${(it.investment||0).toLocaleString()} 回:${(it.payout||0).toLocaleString()}</div>
+                        <div class="meta">投:${(it.investment || 0).toLocaleString()} 回:${(it.payout || 0).toLocaleString()}</div>
                         <div class="amount">￥${amt.toLocaleString()}</div>
                         <button class="btn-del" data-id="${it.id}" aria-label="削除">✕</button>
                     </div>`;
@@ -346,14 +334,14 @@ function setupEventListeners() {
                     const year = now.getFullYear();
                     const month = now.getMonth();
                     const day = closest.day || Math.ceil((closest.x - 36) / ((canvas.clientWidth - 72) / new Date(year, month + 1, 0).getDate()));
-                    const dateStr = `${year}-${pad(month+1)}-${pad(day)}`;
+                    const dateStr = `${year}-${pad(month + 1)}-${pad(day)}`;
                     const items = Finance.getMonthlyEntries(year, month).filter(it => it.date === dateStr);
                     let totalInvest = 0, totalPayout = 0;
                     const rows = items.map(it => {
-                        totalInvest += Number(it.investment)||0;
-                        totalPayout += Number(it.payout)||0;
-                        const amt = Number(it.amount) || (Number(it.payout)||0) - (Number(it.investment)||0);
-                        return `<div style="margin-top:4px;">${it.type || 'その他'} ${it.note ? '・'+it.note : ''}<br>投:${(it.investment||0).toLocaleString()} 回:${(it.payout||0).toLocaleString()} 差額:￥${amt.toLocaleString()}</div>`;
+                        totalInvest += Number(it.investment) || 0;
+                        totalPayout += Number(it.payout) || 0;
+                        const amt = Number(it.amount) || (Number(it.payout) || 0) - (Number(it.investment) || 0);
+                        return `<div style="margin-top:4px;">${it.type || 'その他'} ${it.note ? '・' + it.note : ''}<br>投:${(it.investment || 0).toLocaleString()} 回:${(it.payout || 0).toLocaleString()} 差額:￥${amt.toLocaleString()}</div>`;
                     }).join('');
                     const net = totalPayout - totalInvest;
                     if (tooltip) {

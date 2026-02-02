@@ -24,7 +24,8 @@
                     <button type="button" class="btn btn-secondary" id="btn-view-calendar" aria-label="カレンダー表示">
                         カレンダー
                     </button>
-                    <button type="button" class="btn btn-secondary" id="btn-finance" aria-label="収支表示" style="margin-left:0.5rem;">
+                    <button type="button" class="btn btn-secondary" id="btn-finance" aria-label="収支表示"
+                        style="margin-left:0.5rem;">
                         収支
                     </button>
                 </div>
@@ -47,21 +48,28 @@
             <div id="calendar-view" class="calendar-view" hidden></div>
             <div id="finance-view" class="finance-view" hidden style="padding:1rem;">
                 <h3 style="margin-top:0; font-size:1rem;">今月の収支</h3>
-                <form id="finance-form" style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap;">
-                    <select id="finance-type" style="padding:0.4rem; border:1px solid var(--border-color); border-radius:6px;">
+                <form id="finance-form"
+                    style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap;">
+                    <select id="finance-type"
+                        style="padding:0.4rem; border:1px solid var(--border-color); border-radius:6px;">
                         <option value="slot">スロット</option>
                         <option value="pachinko">パチンコ</option>
                         <option value="other">その他</option>
                     </select>
-                    <input type="date" id="finance-date" required style="padding:0.4rem; border:1px solid var(--border-color); border-radius:6px;">
-                    <input type="number" id="finance-investment" placeholder="投資 (円)" required style="padding:0.4rem; border:1px solid var(--border-color); border-radius:6px; width:120px;">
-                    <input type="number" id="finance-payout" placeholder="回収 (円)" required style="padding:0.4rem; border:1px solid var(--border-color); border-radius:6px; width:120px;">
-                    <input type="text" id="finance-note" placeholder="メモ" style="padding:0.4rem; border:1px solid var(--border-color); border-radius:6px; flex:1; min-width:160px;">
+                    <input type="date" id="finance-date" required
+                        style="padding:0.4rem; border:1px solid var(--border-color); border-radius:6px;">
+                    <input type="number" id="finance-investment" placeholder="投資 (円)" required
+                        style="padding:0.4rem; border:1px solid var(--border-color); border-radius:6px; width:120px;">
+                    <input type="number" id="finance-payout" placeholder="回収 (円)" required
+                        style="padding:0.4rem; border:1px solid var(--border-color); border-radius:6px; width:120px;">
+                    <input type="text" id="finance-note" placeholder="メモ"
+                        style="padding:0.4rem; border:1px solid var(--border-color); border-radius:6px; flex:1; min-width:160px;">
                     <button type="submit" class="btn btn-primary" style="padding:0.35rem 0.6rem;">追加</button>
                 </form>
                 <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.5rem;">
                     <label for="finance-mode" style="color:var(--text-secondary); font-size:0.85rem;">表示:</label>
-                    <select id="finance-mode" style="padding:0.3rem; border:1px solid var(--border-color); border-radius:6px;">
+                    <select id="finance-mode"
+                        style="padding:0.3rem; border:1px solid var(--border-color); border-radius:6px;">
                         <option value="cumulative">累積</option>
                         <option value="daily">日別</option>
                         <option value="stacked">積み上げ折れ線</option>
@@ -72,7 +80,8 @@
                     <canvas id="finance-chart" width="800" height="300" style="max-width:100%; height:300px;"></canvas>
                     <div id="finance-tooltip" class="finance-tooltip" hidden></div>
                 </div>
-                <div id="finance-legend" style="margin-top:0.5rem; color:var(--text-secondary); font-size:0.9rem;"></div>
+                <div id="finance-legend" style="margin-top:0.5rem; color:var(--text-secondary); font-size:0.9rem;">
+                </div>
                 <div id="finance-entries" class="finance-entries" style="margin-top:0.75rem;"></div>
             </div>
         </main>
@@ -88,11 +97,6 @@
             <header class="modal-header">
                 <div class="modal-header-content">
                     <div style="display: flex; align-items: center; gap: var(--spacing-sm); flex: 1;">
-                        <select id="modal-category-select" class="modal-title-select">
-                            <option value="その他">その他</option>
-                            <option value="バイト">バイト</option>
-                            <option value="学校">学校</option>
-                        </select>
                         <h2 id="modal-title" style="margin: 0; font-size: 1.1rem;">予定を追加</h2>
                     </div>
                     <button type="button" class="close-btn" id="modal-close">✕</button>
@@ -102,8 +106,13 @@
                 <input type="hidden" name="id">
                 <div class="form-group">
                     <label for="title">タイトル</label>
-                    <input type="text" id="title" name="title" autocomplete="off" style="cursor: pointer;">
-
+                    <input type="text" id="title" name="title" autocomplete="off" list="title-suggestions"
+                        placeholder="タイトルを入力または選択" style="cursor: pointer;">
+                    <datalist id="title-suggestions">
+                        <option value="バイト"></option>
+                        <option value="学校"></option>
+                        <option value="その他"></option>
+                    </datalist>
                 </div>
                 <div class="form-group">
                     <label for="date">日付</label>
