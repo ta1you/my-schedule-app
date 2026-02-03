@@ -71,39 +71,113 @@
                 <div id="finance-legend" style="margin-top:0.5rem; color:var(--text-secondary); font-size:0.9rem;">
                 </div>
                 <div id="finance-entries" class="finance-entries" style="margin-top:0.75rem;"></div>
+            </div>
 
+            <div id="kakeibo-view" class="finance-view" hidden style="padding:1rem;">
+                <h3 style="margin-top:0; font-size:1.1rem; margin-bottom: 1rem;">家計簿</h3>
+                <div id="kakeibo-legend"
+                    style="background: white; padding: 1rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1rem;">
+                </div>
 
+                <form id="kakeibo-form"
+                    style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: center; margin-bottom: 1rem; gap: 0.5rem;">
+                        <label style="cursor: pointer;">
+                            <input type="radio" name="ktype" value="expense" checked class="type-radio">
+                            <span class="type-btn">支出</span>
+                        </label>
+                        <label style="cursor: pointer;">
+                            <input type="radio" name="ktype" value="income" class="type-radio">
+                            <span class="type-btn">収入</span>
+                        </label>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <input type="date" id="kakeibo-date" required
+                            style="padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; width: 100%;">
+                        <select id="kakeibo-category"
+                            style="padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; width: 100%;">
+                            <option value="食費">食費</option>
+                            <option value="交通費">交通費</option>
+                            <option value="娯楽">娯楽</option>
+                            <option value="日用品">日用品</option>
+                            <option value="家賃">家賃</option>
+                            <option value="通信費">通信費</option>
+                            <option value="給料">給料</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 0.5rem;">
+                        <input type="number" id="kakeibo-amount" placeholder="金額 (円)" required
+                            style="padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; width: 100%; font-size: 1.1rem;">
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="kakeibo-note" placeholder="メモ (任意)"
+                            style="padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; flex: 1;">
+                        <button type="submit" class="btn btn-primary"
+                            style="padding: 0 1.5rem; border-radius: 8px;">登録</button>
+                    </div>
+                </form>
+
+                <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:0.5rem;">
+                    <h4 style="margin:0; font-size: 1rem;">分析グラフ</h4>
+                    <select id="kakeibo-mode"
+                        style="padding: 4px 8px; border:1px solid var(--border-color); border-radius:6px; font-size: 0.85rem;">
+                        <option value="pie">カテゴリ割合</option>
+                        <option value="daily">日別グラフ</option>
+                        <option value="cumulative">累積推移</option>
+                    </select>
+                </div>
+                <div style="position:relative;">
+                    <canvas id="kakeibo-chart" width="800" height="300" style="max-width:100%; height:300px;"></canvas>
+                </div>
+                <div id="kakeibo-entries" style="margin-top:0.75rem;"></div>
+            </div>
+            <div id="settings-view" class="settings-view" hidden style="width: 100%; padding: 0.5rem; margin-top: 0;">
+                <h3 style="margin-top: 0; font-size: 1.25rem; margin-bottom: 0.5rem; padding-left: 0.5rem;">設定</h3>
+                <div class="settings-section"
+                    style="background: var(--bg-surface); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+                    <h4 style="font-size: 1rem; margin-bottom: 0.5rem;">タブの表示設定</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                        下のメニューに表示するタブを選択できます。
+                    </p>
+                    <div class="toggle-item">
+                        <span class="toggle-label">リスト</span>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-list" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <span class="toggle-label">カレンダー</span>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-calendar" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <span class="toggle-label">収支</span>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-finance" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <span class="toggle-label">家計簿</span>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-kakeibo" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; text-align: center; color: var(--text-tertiary); font-size: 0.8rem;">
+                    My Schedule App v1.0.1
+                </div>
             </div>
         </main>
-        <div id="settings-view" class="settings-view" hidden style="padding: 1rem;">
-            <h3 style="margin-top: 0; font-size: 1.1rem; margin-bottom: 1rem;">設定</h3>
-            <div class="settings-section"
-                style="background: var(--bg-surface); padding: 1rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;">タブの表示設定</h4>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
-                    下のメニューに表示するタブを選択できます。
-                </p>
-                <div class="setting-item"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border-light);">
-                    <label for="toggle-list" style="font-weight: 500;">リスト</label>
-                    <input type="checkbox" id="toggle-list" checked>
-                </div>
-                <div class="setting-item"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border-light);">
-                    <label for="toggle-calendar" style="font-weight: 500;">カレンダー</label>
-                    <input type="checkbox" id="toggle-calendar" checked>
-                </div>
-                <div class="setting-item"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
-                    <label for="toggle-finance" style="font-weight: 500;">収支</label>
-                    <input type="checkbox" id="toggle-finance" checked>
-                </div>
-            </div>
-
-            <div style="margin-top: 2rem; text-align: center; color: var(--text-tertiary); font-size: 0.8rem;">
-                My Schedule App v1.0.1
-            </div>
-        </div>
         <button id="fab-add" class="fab" aria-label="予定を追加">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -174,6 +248,10 @@
             <span class="nav-icon">💰</span>
             <span class="nav-label">収支</span>
         </button>
+        <button type="button" class="nav-item" id="btn-kakeibo">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">家計簿</span>
+        </button>
         <button type="button" class="nav-item" id="btn-settings">
             <span class="nav-icon">⚙️</span>
             <span class="nav-label">設定</span>
@@ -181,6 +259,12 @@
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
     <script type="module" src="js/app.js"></script>
 </body>
 

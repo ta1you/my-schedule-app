@@ -3,7 +3,8 @@ export const Settings = {
     defaults: {
         showList: true,
         showCalendar: true,
-        showFinance: true
+        showFinance: true,
+        showKakeibo: true
     },
 
     // Current preferences
@@ -50,10 +51,12 @@ export const Settings = {
         const toggleList = document.getElementById('toggle-list');
         const toggleCalendar = document.getElementById('toggle-calendar');
         const toggleFinance = document.getElementById('toggle-finance');
+        const toggleKakeibo = document.getElementById('toggle-kakeibo');
 
         if (toggleList) toggleList.checked = this.prefs.showList;
         if (toggleCalendar) toggleCalendar.checked = this.prefs.showCalendar;
         if (toggleFinance) toggleFinance.checked = this.prefs.showFinance;
+        if (toggleKakeibo) toggleKakeibo.checked = this.prefs.showKakeibo;
     },
 
     // Apply settings (show/hide tabs)
@@ -61,13 +64,12 @@ export const Settings = {
         const btnList = document.getElementById('btn-view-list');
         const btnCalendar = document.getElementById('btn-view-calendar');
         const btnFinance = document.getElementById('btn-finance');
+        const btnKakeibo = document.getElementById('btn-kakeibo');
 
         if (btnList) btnList.style.display = this.prefs.showList ? '' : 'none';
         if (btnCalendar) btnCalendar.style.display = this.prefs.showCalendar ? '' : 'none';
         if (btnFinance) btnFinance.style.display = this.prefs.showFinance ? '' : 'none';
-
-        // Check if current view is hidden, if so switch to first available
-        // This logic might need to be called from app.js or handled carefully
+        if (btnKakeibo) btnKakeibo.style.display = this.prefs.showKakeibo ? '' : 'none';
     },
 
     // Setup event listeners for settings controls
@@ -75,6 +77,7 @@ export const Settings = {
         const toggleList = document.getElementById('toggle-list');
         const toggleCalendar = document.getElementById('toggle-calendar');
         const toggleFinance = document.getElementById('toggle-finance');
+        const toggleKakeibo = document.getElementById('toggle-kakeibo');
 
         if (toggleList) {
             toggleList.addEventListener('change', (e) => {
@@ -93,6 +96,13 @@ export const Settings = {
         if (toggleFinance) {
             toggleFinance.addEventListener('change', (e) => {
                 this.prefs.showFinance = e.target.checked;
+                this.save();
+            });
+        }
+
+        if (toggleKakeibo) {
+            toggleKakeibo.addEventListener('change', (e) => {
+                this.prefs.showKakeibo = e.target.checked;
                 this.save();
             });
         }

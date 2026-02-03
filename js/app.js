@@ -3,6 +3,7 @@ import { UI } from './ui.js';
 import { generateId, getTodayString } from './utils.js';
 import { Calendar } from './calendar.js';
 import { Finance } from './finance.js';
+import { Kakeibo } from './kakeibo.js';
 import { Settings } from './settings.js';
 
 // Register Service Worker
@@ -38,9 +39,26 @@ if ('serviceWorker' in navigator) {
 
 document.addEventListener('DOMContentLoaded', () => {
     UI.init();
-    Calendar.init();
-    Settings.init();
+    Calendar.init(); // Init calendar first so it finds the element
+    Settings.init(); // Init settings (creates listeners)
+
+    // Init Storage with callback to refresh UI and Calendar
+    Storage.init(() => {
+        UI.render();
+        Calendar.refresh();
+    });
+
+    // Actually, setupEventListeners defines 'window.renderFinanceView'. 
+
     setupEventListeners();
+
+    Finance.init(() => {
+        if (window.renderFinanceView) window.renderFinanceView();
+    });
+
+    Kakeibo.init(() => {
+        if (window.renderKakeiboView) window.renderKakeiboView();
+    });
 });
 
 function setupEventListeners() {
@@ -71,20 +89,24 @@ function setupEventListeners() {
     const btnList = document.getElementById('btn-view-list');
     const btnCalendar = document.getElementById('btn-view-calendar');
     const btnFinance = document.getElementById('btn-finance');
+    const btnKakeibo = document.getElementById('btn-kakeibo'); // New button
     const btnSettings = document.getElementById('btn-settings');
     const listView = document.getElementById('schedule-list');
     const calendarView = document.getElementById('calendar-view');
     const financeView = document.getElementById('finance-view');
+    const kakeiboView = document.getElementById('kakeibo-view'); // New view
     const settingsView = document.getElementById('settings-view');
 
     // Helper to set view state; uses both attribute and fallback class for robustness
     function setView(viewName) {
+        document.getElementById('main-content').scrollTop = 0; // Reset scroll position
         const categoryTabs = document.querySelector('.category-tabs');
 
         // Hide all views first
         listView.hidden = true;
         calendarView.hidden = true;
         if (financeView) financeView.hidden = true;
+        if (kakeiboView) kakeiboView.hidden = true;
         if (settingsView) settingsView.hidden = true;
 
         listView.style.display = 'none';
@@ -95,6 +117,7 @@ function setupEventListeners() {
         btnList.classList.remove('active');
         btnCalendar.classList.remove('active');
         if (btnFinance) btnFinance.classList.remove('active');
+        if (btnKakeibo) btnKakeibo.classList.remove('active');
         if (btnSettings) btnSettings.classList.remove('active');
 
         // Default FAB visibility
@@ -127,19 +150,24 @@ function setupEventListeners() {
         } else if (viewName === 'finance') {
             if (financeView) financeView.hidden = false;
             if (btnFinance) btnFinance.classList.add('active');
+            if (categoryTabs) categoryTabs.hidden = true;
 
-            if (categoryTabs) {
-                categoryTabs.hidden = true;
-                categoryTabs.style.display = 'none';
-            }
-
-            // set default date to today in the mini-form
+            // set default date
             const fdate = document.getElementById('finance-date');
             if (fdate) fdate.value = getTodayString();
 
-            // render chart
-            const canvas = document.getElementById('finance-chart');
-            if (window.renderFinanceView) window.renderFinanceView(); else Finance.renderChart(canvas);
+            if (window.renderFinanceView) window.renderFinanceView();
+
+        } else if (viewName === 'kakeibo') {
+            if (kakeiboView) kakeiboView.hidden = false;
+            if (btnKakeibo) btnKakeibo.classList.add('active');
+            if (categoryTabs) categoryTabs.hidden = true;
+
+            const kdate = document.getElementById('kakeibo-date');
+            if (kdate) kdate.value = getTodayString();
+
+            if (window.renderKakeiboView) window.renderKakeiboView();
+
         } else if (viewName === 'settings') {
             if (settingsView) {
                 settingsView.hidden = false;
@@ -159,12 +187,9 @@ function setupEventListeners() {
 
     btnList.addEventListener('click', () => setView('list'));
     btnCalendar.addEventListener('click', () => setView('calendar'));
-    if (btnFinance) {
-        btnFinance.addEventListener('click', () => setView('finance'));
-    }
-    if (btnSettings) {
-        btnSettings.addEventListener('click', () => setView('settings'));
-    }
+    if (btnFinance) btnFinance.addEventListener('click', () => setView('finance'));
+    if (btnKakeibo) btnKakeibo.addEventListener('click', () => setView('kakeibo'));
+    if (btnSettings) btnSettings.addEventListener('click', () => setView('settings'));
 
     // Handle finance form submission
     const financeForm = document.getElementById('finance-form');
@@ -172,11 +197,12 @@ function setupEventListeners() {
         financeForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const date = document.getElementById('finance-date').value;
-            const type = document.getElementById('finance-type').value;
+            const type = document.getElementById('finance-type').value; // slot/pachinko/other
             const investment = Number(document.getElementById('finance-investment').value) || 0;
             const payout = Number(document.getElementById('finance-payout').value) || 0;
             const note = document.getElementById('finance-note').value || '';
-            const amount = payout - investment;
+            const amount = payout - investment; // Calculate profit/loss
+
             const item = {
                 id: generateId(),
                 date,
@@ -187,12 +213,37 @@ function setupEventListeners() {
                 note
             };
             Finance.save(item);
-            const canvas = document.getElementById('finance-chart');
-            Finance.renderChart(canvas);
-            // clear amount and note
+
             document.getElementById('finance-investment').value = '';
             document.getElementById('finance-payout').value = '';
             document.getElementById('finance-note').value = '';
+        });
+    }
+
+    // Handle Kakeibo submit
+    const kakeiboForm = document.getElementById('kakeibo-form');
+    if (kakeiboForm) {
+        kakeiboForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const date = document.getElementById('kakeibo-date').value;
+            const amount = Number(document.getElementById('kakeibo-amount').value) || 0;
+            const category = document.getElementById('kakeibo-category').value;
+            const note = document.getElementById('kakeibo-note').value || '';
+            const typeRadio = document.querySelector('input[name="ktype"]:checked');
+            const type = typeRadio ? typeRadio.value : 'expense';
+
+            const item = {
+                id: generateId(),
+                date,
+                type,
+                category,
+                amount,
+                note
+            };
+            Kakeibo.save(item);
+
+            document.getElementById('kakeibo-amount').value = '';
+            document.getElementById('kakeibo-note').value = '';
         });
     }
 
@@ -293,7 +344,7 @@ function setupEventListeners() {
 
         function renderAndPopulate() {
             try {
-                const mode = (modeSelect && modeSelect.value) || 'cumulative';
+                const mode = (modeSelect && modeSelect.value) || 'pie';
                 Finance.renderChart(canvas, mode);
                 populateEntries();
             } catch (e) {
@@ -308,19 +359,28 @@ function setupEventListeners() {
             const month = now.getMonth();
             const items = Finance.getMonthlyEntries(year, month);
             if (!items || items.length === 0) {
-                entriesDiv.innerHTML = `<div style="color:var(--text-secondary)">該当月の収支がありません</div>`;
+                entriesDiv.innerHTML = `<div style="color:var(--text-secondary); text-align:center; padding:1rem;">今月のデータはありません</div>`;
                 return;
             }
 
-            entriesDiv.innerHTML = items.map(it => {
+            // Sort by date desc
+            items.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            entriesDiv.innerHTML = '<h4 style="font-size:0.9rem; margin-bottom:0.5rem; border-left:3px solid var(--primary-color); padding-left:8px;">履歴</h4>' + items.map(it => {
                 const day = new Date(it.date).getDate();
-                const amt = Number(it.amount) || (Number(it.payout) || 0) - (Number(it.investment) || 0);
+                const isIncome = it.type === 'income';
+                const color = isIncome ? 'var(--success-color)' : 'var(--text-primary)';
+                const sign = isIncome ? '+' : '';
                 return `
-                    <div class="finance-entry">
-                        <div class="meta">${day}日 · ${it.type || 'その他'} · ${it.note || ''}</div>
-                        <div class="meta">投:${(it.investment || 0).toLocaleString()} 回:${(it.payout || 0).toLocaleString()}</div>
-                        <div class="amount">￥${amt.toLocaleString()}</div>
-                        <button class="btn-del" data-id="${it.id}" aria-label="削除">✕</button>
+                    <div class="finance-entry" style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border-radius:8px; margin-bottom:8px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:0.8rem; color:var(--text-tertiary);">${day}日 · ${it.category}</span>
+                            <span style="font-size:0.9rem; font-weight:500;">${it.note || '-'}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-weight:700; color:${color}; font-size:1rem;">${sign}￥${Number(it.amount).toLocaleString()}</span>
+                            <button class="btn-del" data-id="${it.id}" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:1.2rem;">×</button>
+                        </div>
                     </div>`;
             }).join('');
         }
@@ -396,6 +456,60 @@ function setupEventListeners() {
     // Backup & Restore
 
     setupFinanceInteractions();
+    setupKakeiboInteractions();
+}
+
+// Separate Kakeibo setup
+function setupKakeiboInteractions() {
+    const canvas = document.getElementById('kakeibo-chart');
+    const modeSelect = document.getElementById('kakeibo-mode');
+    const entriesDiv = document.getElementById('kakeibo-entries');
+
+    if (!canvas) return;
+
+    function renderAndPopulate() {
+        const mode = (modeSelect && modeSelect.value) || 'pie';
+        Kakeibo.renderChart(canvas, mode);
+        populateEntries();
+    }
+
+    function populateEntries() {
+        if (!entriesDiv) return;
+        const now = new Date();
+        const items = Kakeibo.getMonthlyEntries(now.getFullYear(), now.getMonth());
+        if (!items || items.length === 0) {
+            entriesDiv.innerHTML = '<div style="color:var(--text-secondary); text-align:center; padding:1rem;">データなし</div>';
+            return;
+        }
+        items.sort((a, b) => new Date(b.date) - new Date(a.date));
+        entriesDiv.innerHTML = items.map(it => {
+            const day = new Date(it.date).getDate();
+            const isIncome = it.type === 'income';
+            return `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border-radius:8px; margin-bottom:8px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size:0.8rem; color:var(--text-tertiary);">${day}日 · ${it.category}</span>
+                        <span style="font-size:0.9rem; font-weight:500;">${it.note || '-'}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-weight:700; color:${isIncome ? 'var(--success-color)' : 'var(--text-primary)'}; font-size:1rem;">${isIncome ? '+' : ''}￥${Number(it.amount).toLocaleString()}</span>
+                        <button class="btn-del-k" data-id="${it.id}" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:1.2rem;">×</button>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    if (entriesDiv) entriesDiv.addEventListener('click', (e) => {
+        const b = e.target.closest('.btn-del-k');
+        if (b && confirm('削除しますか？')) {
+            Kakeibo.delete(b.dataset.id);
+            renderAndPopulate();
+        }
+    });
+
+    if (modeSelect) modeSelect.addEventListener('change', renderAndPopulate);
+    window.renderKakeiboView = renderAndPopulate;
+    renderAndPopulate(); // Initial
 }
 
 

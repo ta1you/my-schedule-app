@@ -3,6 +3,9 @@ import { Storage } from './storage.js';
 export const Calendar = {
     init() {
         this.container = document.getElementById('calendar-view');
+        // If container is missing, we can't do much, but let's try to get it again if called lazily
+        if (!this.container) return;
+
         const today = new Date();
         this.currentYear = today.getFullYear();
         this.currentMonth = today.getMonth();
@@ -10,7 +13,8 @@ export const Calendar = {
     },
 
     refresh() {
-        this.render();
+        if (!this.container) this.container = document.getElementById('calendar-view');
+        if (this.container) this.render();
     },
 
     prevMonth() {

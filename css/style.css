@@ -11,6 +11,12 @@
     --accent-light: #f472b6;
     /* Pink 400 */
 
+    /* Toggle Switch */
+    --toggle-width: 52px;
+    --toggle-height: 32px;
+    --toggle-bg: #cbd5e1;
+    --toggle-checked: #22c55e;
+
     /* Semantic Colors */
     --success-color: #10b981;
     --warning-color: #f59e0b;
@@ -154,6 +160,8 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
+    /* Force top alignment */
     scroll-behavior: smooth;
 }
 
@@ -790,60 +798,142 @@ select:focus {
         padding: var(--space-sm);
     }
 
-    .calendar-controls h2 {
-        font-size: 1rem;
+    /* Finance Type Toggles */
+    .type-radio {
+        display: none;
     }
 
-    .calendar-month {
-        padding: var(--space-xs);
+    .type-btn {
+        display: inline-block;
+        padding: 8px 24px;
+        background: #e2e8f0;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        transition: all 0.2s;
     }
 
-    .day-cell {
-        min-height: 50px;
-        padding: 2px;
+    .type-radio:checked+.type-btn {
+        background: var(--primary-color);
+        color: white;
+        box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
     }
 
-    .day-number {
-        width: 20px;
-        height: 20px;
-        font-size: 0.75rem;
+    .type-radio[value="income"]:checked+.type-btn {
+        background: var(--success-color);
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
     }
 
-    .event-dot {
-        font-size: 0.6rem;
-        padding: 1px 3px;
-        line-height: 1.2;
+    .type-radio[value="expense"]:checked+.type-btn {
+        background: var(--danger-color);
+        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
     }
+}
 
-    /* Modal Mobile */
-    .modal {
-        width: 95%;
-        max-width: 95%;
-    }
+.calendar-month {
+    padding: var(--space-xs);
+}
 
-    .modal-body {
-        padding: var(--space-md);
-        gap: var(--space-md);
-    }
+.day-cell {
+    min-height: 50px;
+    padding: 2px;
+}
 
-    .form-row {
-        flex-direction: column;
-        gap: var(--space-md);
-    }
+.day-number {
+    width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
+}
 
-    /* Finance View Mobile */
-    .finance-view {
-        padding: var(--space-sm);
-    }
+.event-dot {
+    font-size: 0.6rem;
+    padding: 1px 3px;
+    line-height: 1.2;
+}
 
-    #finance-form {
-        flex-direction: column;
-        align-items: stretch;
-    }
+/* Modal Mobile */
+.modal {
+    width: 95%;
+    max-width: 95%;
+}
 
-    #finance-form input,
-    #finance-form select,
-    #finance-form button {
-        width: 100%;
-    }
+.modal-body {
+    padding: var(--space-md);
+    gap: var(--space-md);
+}
+
+.form-row {
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+/* Finance View Mobile */
+.finance-view {
+    padding: var(--space-sm);
+}
+
+#finance-form {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#finance-form input,
+#finance-form select,
+#finance-form button {
+    width: 100%;
+}
+}
+
+/* Toggle Switch Style */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 32px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    /* Slate 300 */
+    transition: .3s;
+    border-radius: 32px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 24px;
+    width: 24px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+input:checked+.slider {
+    background-color: var(--success-color);
+    /* Green */
+}
+
+input:focus+.slider {
+    box-shadow: 0 0 1px var(--success-color);
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
 }

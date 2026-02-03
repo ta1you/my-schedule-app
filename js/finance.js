@@ -1,30 +1,101 @@
+import { db } from './firebase-config.js';
+import { Auth } from './auth.js';
+
 const FINANCE_KEY = 'my_finance_pwa_data';
+let items = []; // In-memory cache
 let chartInstance = null;
+let changeListeners = [];
 
 export const Finance = {
+    async init(onDataChangedCallback) {
+        if (onDataChangedCallback) {
+            changeListeners.push(onDataChangedCallback);
+        }
+
+        // 1. Load Local
+        this.loadFromLocal();
+        this._notifyChange();
+
+        // 2. Auth & Sync
+        const user = await Auth.init();
+        if (!user) return;
+
+        const userId = user.uid;
+        const collectionRef = db.collection('users').doc(userId).collection('finance');
+
+        collectionRef.onSnapshot((snapshot) => {
+            const remoteItems = [];
+            snapshot.forEach(doc => {
+                remoteItems.push(doc.data());
+            });
+
+            if (remoteItems.length === 0 && items.length > 0) {
+                console.log('Migrating local finance data to cloud...');
+                items.forEach(it => {
+                    collectionRef.doc(it.id).set(it);
+                });
+            } else {
+                items = remoteItems;
+                items.sort((a, b) => new Date(a.date) - new Date(b.date));
+                localStorage.setItem(FINANCE_KEY, JSON.stringify(items));
+                this._notifyChange();
+            }
+        });
+    },
+
+    loadFromLocal() {
+        try {
+            const data = localStorage.getItem(FINANCE_KEY);
+            items = data ? JSON.parse(data) : [];
+        } catch (e) {
+            items = [];
+        }
+    },
+
     getAll() {
-        const data = localStorage.getItem(FINANCE_KEY);
-        return data ? JSON.parse(data) : [];
+        return items;
     },
 
     save(item) {
         item.investment = Number(item.investment) || 0;
         item.payout = Number(item.payout) || 0;
         item.amount = Number(item.amount) || (item.payout - item.investment);
-        const items = this.getAll();
+
+        // Local update
         const existing = items.findIndex(i => i.id === item.id);
         if (existing >= 0) items[existing] = item; else items.push(item);
         items.sort((a, b) => new Date(a.date) - new Date(b.date));
-        localStorage.setItem(FINANCE_KEY, JSON.stringify(items));
+        this._notifyChange();
+
+        // Cloud update
+        const uid = Auth.getUserId();
+        if (uid) {
+            db.collection('users').doc(uid).collection('finance').doc(item.id).set(item)
+                .catch(err => console.error('Finance save error', err));
+        }
     },
 
     delete(id) {
-        const items = this.getAll().filter(i => i.id !== id);
-        localStorage.setItem(FINANCE_KEY, JSON.stringify(items));
+        items = items.filter(i => i.id !== id);
+        this._notifyChange();
+
+        const uid = Auth.getUserId();
+        if (uid) {
+            db.collection('users').doc(uid).collection('finance').doc(id).delete();
+        }
     },
 
+    _notifyChange() {
+        // Re-render chart if canvas exists in DOM
+        const canvas = document.getElementById('finance-chart');
+        if (canvas) {
+            // We let the app.js listener handle re-rendering through the callback
+        }
+        changeListeners.forEach(cb => cb());
+    },
+
+    // ... Calculation methods (unchanged logic, just using 'items' variable) ...
     getMonthlyEntries(year, month) {
-        const items = this.getAll();
         return items.filter(it => {
             const d = new Date(it.date);
             return d.getFullYear() === year && d.getMonth() === month;
@@ -32,7 +103,6 @@ export const Finance = {
     },
 
     getMonthlyAggregates(year, month) {
-        const items = this.getAll();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const byDay = new Array(daysInMonth).fill(0);
         let totalIncome = 0, totalExpense = 0;
@@ -54,6 +124,10 @@ export const Finance = {
         return { byDay, totalIncome, totalExpense, totalsByType };
     },
 
+    // Helper for tooltip to find closest point (need to store last points)
+    _lastPoints: [],
+    getLastPoints() { return this._lastPoints; },
+
     renderChart(canvas, mode = 'cumulative') {
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
@@ -71,12 +145,10 @@ export const Finance = {
             return currentTotal;
         });
 
-        // Destroy existing chart if any
         if (chartInstance) {
             chartInstance.destroy();
         }
 
-        // Configuration based on mode
         let type, data, options;
 
         if (mode === 'daily') {
@@ -93,7 +165,6 @@ export const Finance = {
                 }]
             };
         } else {
-            // Default: Cumulative Line Chart
             type = 'line';
             data = {
                 labels: labels,
@@ -112,22 +183,20 @@ export const Finance = {
             };
         }
 
+        // Store points for tooltip
+        this._lastPoints = labels.map((day, i) => ({
+            day: day,
+            val: mode === 'daily' ? byDay[i] : cumulativeData[i],
+        }));
+
         options = {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            let label = context.dataset.label || '';
-                            if (label) label += ': ';
-                            if (context.parsed.y !== null) {
-                                label += new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(context.parsed.y);
-                            }
-                            return label;
-                        }
-                    }
+                    enabled: false,
+                    external: function (context) { }
                 }
             },
             scales: {
@@ -139,22 +208,21 @@ export const Finance = {
                 x: {
                     grid: { display: false }
                 }
+            },
+            animation: {
+                onComplete: () => { }
             }
         };
 
         chartInstance = new Chart(ctx, { type, data, options });
-
-        // Update Legend Text
         this._updateLegend(totalIncome, totalExpense, totalsByType);
     },
 
     _updateLegend(totalIncome, totalExpense, totalsByType) {
         const legend = document.getElementById('finance-legend');
         if (!legend) return;
-
-        const total = totalIncome + totalExpense; // expense is negative
+        const total = totalIncome + totalExpense;
         const net = totalIncome + totalExpense;
-
         let html = `
             <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; font-size: 0.9rem;">
                 <span style="color: var(--text-primary)">合計: <strong>￥${net.toLocaleString()}</strong></span>
