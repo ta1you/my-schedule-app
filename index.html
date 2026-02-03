@@ -75,6 +75,35 @@
 
             </div>
         </main>
+        <div id="settings-view" class="settings-view" hidden style="padding: 1rem;">
+            <h3 style="margin-top: 0; font-size: 1.1rem; margin-bottom: 1rem;">設定</h3>
+            <div class="settings-section"
+                style="background: var(--bg-surface); padding: 1rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;">タブの表示設定</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    下のメニューに表示するタブを選択できます。
+                </p>
+                <div class="setting-item"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border-light);">
+                    <label for="toggle-list" style="font-weight: 500;">リスト</label>
+                    <input type="checkbox" id="toggle-list" checked>
+                </div>
+                <div class="setting-item"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border-light);">
+                    <label for="toggle-calendar" style="font-weight: 500;">カレンダー</label>
+                    <input type="checkbox" id="toggle-calendar" checked>
+                </div>
+                <div class="setting-item"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
+                    <label for="toggle-finance" style="font-weight: 500;">収支</label>
+                    <input type="checkbox" id="toggle-finance" checked>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; text-align: center; color: var(--text-tertiary); font-size: 0.8rem;">
+                My Schedule App v1.0.1
+            </div>
+        </div>
         <button id="fab-add" class="fab" aria-label="予定を追加">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -144,6 +173,10 @@
         <button type="button" class="nav-item" id="btn-finance">
             <span class="nav-icon">💰</span>
             <span class="nav-label">収支</span>
+        </button>
+        <button type="button" class="nav-item" id="btn-settings">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">設定</span>
         </button>
     </nav>
 

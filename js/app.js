@@ -3,6 +3,7 @@ import { UI } from './ui.js';
 import { generateId, getTodayString } from './utils.js';
 import { Calendar } from './calendar.js';
 import { Finance } from './finance.js';
+import { Settings } from './settings.js';
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
@@ -38,6 +39,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
     UI.init();
     Calendar.init();
+    Settings.init();
     setupEventListeners();
 });
 
@@ -69,46 +71,82 @@ function setupEventListeners() {
     const btnList = document.getElementById('btn-view-list');
     const btnCalendar = document.getElementById('btn-view-calendar');
     const btnFinance = document.getElementById('btn-finance');
+    const btnSettings = document.getElementById('btn-settings');
     const listView = document.getElementById('schedule-list');
     const calendarView = document.getElementById('calendar-view');
     const financeView = document.getElementById('finance-view');
+    const settingsView = document.getElementById('settings-view');
 
     // Helper to set view state; uses both attribute and fallback class for robustness
-    function setView(showList) {
+    function setView(viewName) {
         const categoryTabs = document.querySelector('.category-tabs');
-        // always hide finance view when switching to list/calendar
+
+        // Hide all views first
+        listView.hidden = true;
+        calendarView.hidden = true;
         if (financeView) financeView.hidden = true;
+        if (settingsView) settingsView.hidden = true;
+
+        listView.style.display = 'none';
+        calendarView.style.display = 'none';
+        if (settingsView) settingsView.style.display = 'none';
+
+        // Deactivate all buttons
+        btnList.classList.remove('active');
+        btnCalendar.classList.remove('active');
         if (btnFinance) btnFinance.classList.remove('active');
-        if (showList) {
+        if (btnSettings) btnSettings.classList.remove('active');
+
+        // Default FAB visibility
+        fab.hidden = true;
+
+        // Handle specific view
+        if (viewName === 'list') {
             listView.hidden = false;
-            calendarView.hidden = true;
             listView.classList.remove('is-hidden');
-            calendarView.classList.add('is-hidden');
-            // Inline style fallback
             listView.style.display = '';
-            calendarView.style.display = 'none';
+
             btnList.classList.add('active');
-            btnCalendar.classList.remove('active');
             fab.hidden = false;
-            fab.classList.remove('is-hidden');
-            // Show category tabs
+
             if (categoryTabs) {
                 categoryTabs.hidden = false;
                 categoryTabs.style.display = '';
             }
-        } else {
-            listView.hidden = true;
+        } else if (viewName === 'calendar') {
             calendarView.hidden = false;
-            listView.classList.add('is-hidden');
             calendarView.classList.remove('is-hidden');
-            // Inline style fallback
-            listView.style.display = 'none';
             calendarView.style.display = '';
-            btnList.classList.remove('active');
+
             btnCalendar.classList.add('active');
-            fab.hidden = true;
-            fab.classList.add('is-hidden');
-            // Hide category tabs
+
+            if (categoryTabs) {
+                categoryTabs.hidden = true;
+                categoryTabs.style.display = 'none';
+            }
+        } else if (viewName === 'finance') {
+            if (financeView) financeView.hidden = false;
+            if (btnFinance) btnFinance.classList.add('active');
+
+            if (categoryTabs) {
+                categoryTabs.hidden = true;
+                categoryTabs.style.display = 'none';
+            }
+
+            // set default date to today in the mini-form
+            const fdate = document.getElementById('finance-date');
+            if (fdate) fdate.value = getTodayString();
+
+            // render chart
+            const canvas = document.getElementById('finance-chart');
+            if (window.renderFinanceView) window.renderFinanceView(); else Finance.renderChart(canvas);
+        } else if (viewName === 'settings') {
+            if (settingsView) {
+                settingsView.hidden = false;
+                settingsView.style.display = '';
+            }
+            if (btnSettings) btnSettings.classList.add('active');
+
             if (categoryTabs) {
                 categoryTabs.hidden = true;
                 categoryTabs.style.display = 'none';
@@ -117,31 +155,15 @@ function setupEventListeners() {
     }
 
     // initial state: show list
-    setView(true);
+    setView('list');
 
-    btnList.addEventListener('click', () => setView(true));
-    btnCalendar.addEventListener('click', () => setView(false));
+    btnList.addEventListener('click', () => setView('list'));
+    btnCalendar.addEventListener('click', () => setView('calendar'));
     if (btnFinance) {
-        btnFinance.addEventListener('click', () => {
-            // hide list and calendar, show finance
-            listView.hidden = true;
-            calendarView.hidden = true;
-            financeView.hidden = false;
-            btnList.classList.remove('active');
-            btnCalendar.classList.remove('active');
-            btnFinance.classList.add('active');
-            // hide fab and category tabs
-            const fab = document.getElementById('fab-add');
-            if (fab) fab.hidden = true;
-            const categoryTabs = document.querySelector('.category-tabs');
-            if (categoryTabs) categoryTabs.hidden = true;
-            // set default date to today in the mini-form
-            const fdate = document.getElementById('finance-date');
-            if (fdate) fdate.value = getTodayString();
-            // render chart (use exposed renderer if available)
-            const canvas = document.getElementById('finance-chart');
-            if (window.renderFinanceView) window.renderFinanceView(); else Finance.renderChart(canvas);
-        });
+        btnFinance.addEventListener('click', () => setView('finance'));
+    }
+    if (btnSettings) {
+        btnSettings.addEventListener('click', () => setView('settings'));
     }
 
     // Handle finance form submission
