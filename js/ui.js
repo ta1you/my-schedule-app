@@ -27,15 +27,20 @@ export const UI = {
 
     render() {
         let schedules = Storage.getAll();
-        
-        // Filter by category if not 'all'
+
         if (this.currentCategory !== 'all') {
             schedules = schedules.filter(s => (s.category || 'その他') === this.currentCategory);
         }
 
         const today = getTodayString();
-        // Simple filter for today/future for now, or just show all sorted
-        // Let's grouping by date for better UX
+        // Filter out past schedules (keep today and future)
+        schedules = schedules.filter(s => s.date >= today);
+
+        // Sort by date (ascending)
+        schedules.sort((a, b) => {
+            if (a.date !== b.date) return a.date.localeCompare(b.date);
+            return (a.startTime || '').localeCompare(b.startTime || '');
+        });
 
         this.listElement.innerHTML = '';
 

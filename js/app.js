@@ -223,6 +223,27 @@ function setupEventListeners() {
     // Handle Kakeibo submit
     const kakeiboForm = document.getElementById('kakeibo-form');
     if (kakeiboForm) {
+        // Auto-switch mode based on category
+        const kCategory = document.getElementById('kakeibo-category');
+
+        if (kCategory) {
+            kCategory.addEventListener('change', (e) => {
+                const val = e.target.value;
+                const incomeCategories = ['給料', '臨時収入', 'ボーナス'];
+
+                let targetType = 'expense';
+                if (incomeCategories.includes(val)) {
+                    targetType = 'income';
+                }
+
+                // Switch radio
+                const radio = document.querySelector(`input[name="ktype"][value="${targetType}"]`);
+                if (radio) {
+                    radio.checked = true;
+                }
+            });
+        }
+
         kakeiboForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const date = document.getElementById('kakeibo-date').value;
