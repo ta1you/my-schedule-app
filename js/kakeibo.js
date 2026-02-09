@@ -100,11 +100,39 @@ export const Kakeibo = {
         return { byDay, totalIncome, totalExpense, categoryTotals };
     },
 
-    renderChart(canvas, mode = 'pie') {
+    getWeeklyExpense() {
+        const now = new Date();
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(now.getDate() - 6); // Last 7 days inclusive
+        oneWeekAgo.setHours(0, 0, 0, 0);
+
+        let weeklyTotal = 0;
+        items.forEach(it => {
+            const d = new Date(it.date);
+            if (d >= oneWeekAgo && d <= now && it.type === 'expense') {
+                weeklyTotal += Number(it.amount);
+            }
+        });
+        return weeklyTotal;
+    },
+
+    getCategoryRanking(year, month) {
+        const { categoryTotals } = this.getMonthlyAggregates(year, month);
+        return Object.entries(categoryTotals)
+            .map(([cat, amount]) => ({ category: cat, amount }))
+            .sort((a, b) => b.amount - a.amount);
+    },
+
+    renderChart(canvas, mode = 'pie', year, month) {
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
+
+        // Default to current month if not provided
         const now = new Date();
-        const { byDay, totalIncome, totalExpense, categoryTotals } = this.getMonthlyAggregates(now.getFullYear(), now.getMonth());
+        if (year === undefined) year = now.getFullYear();
+        if (month === undefined) month = now.getMonth();
+
+        const { byDay, totalIncome, totalExpense, categoryTotals } = this.getMonthlyAggregates(year, month);
 
         if (chartInstance) chartInstance.destroy();
 
@@ -161,28 +189,111 @@ export const Kakeibo = {
         }
 
         chartInstance = new Chart(ctx, { type, data, options });
-        this._updateLegend(totalIncome, totalExpense);
+
+        // Also update the dashboard and list whenever we render the chart
+        this._updateDashboard(totalIncome, totalExpense, year, month);
+        this._updateCategoryList(year, month);
     },
 
-    _updateLegend(totalIncome, totalExpense) {
+    _updateDashboard(totalIncome, totalExpense, year, month) {
         const legend = document.getElementById('kakeibo-legend');
         if (!legend) return;
+
         const balance = totalIncome - totalExpense;
-        legend.innerHTML = `
-            <div style="display: flex; gap: 1rem; justify-content: center; font-size: 0.9rem;">
-                <div style="text-align: center;">
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">残り</div>
-                    <div style="font-size: 1.2rem; font-weight: 700; color: ${balance >= 0 ? 'var(--primary-color)' : 'var(--danger-color)'}">￥${balance.toLocaleString()}</div>
+
+        const now = new Date();
+        const isCurrentMonth = (year === now.getFullYear() && month === now.getMonth());
+
+        let subPanelHtml = '';
+        if (isCurrentMonth) {
+            const weeklyTotal = this.getWeeklyExpense();
+            subPanelHtml = `
+                <div style="text-align: center; padding: 0.5rem; background: #fff0f0; border-radius: 8px;">
+                    <div style="font-size: 0.8rem; color: var(--danger-color);">直近7日間の支出</div>
+                    <div style="font-size: 1.2rem; font-weight: 700; color: var(--danger-color);">￥${weeklyTotal.toLocaleString()}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-tertiary);">リアルタイム集計</div>
                 </div>
-                <div style="border-left: 1px solid var(--border-light); padding-left: 1rem;">
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">収入</div>
+            `;
+        } else {
+            subPanelHtml = `
+                <div style="text-align: center; padding: 0.5rem; background: #f0f9ff; border-radius: 8px;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">収支バランス</div>
+                    <div style="font-size: 1.2rem; font-weight: 700; color: ${balance >= 0 ? 'var(--primary-color)' : 'var(--danger-color)'}">${balance >= 0 ? '+' : ''}￥${balance.toLocaleString()}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-tertiary);">${year}年${month + 1}月</div>
+                </div>
+            `;
+        }
+
+        // Progress bar for balance (simple visual)
+        const percentage = totalIncome > 0 ? Math.min(100, (totalExpense / totalIncome) * 100) : 0;
+        let progressColor = 'var(--success-color)';
+        if (percentage > 80) progressColor = 'var(--warning-color)';
+        if (percentage > 100) progressColor = 'var(--danger-color)';
+
+        legend.innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div style="text-align: center; padding: 0.5rem; background: #f8fafc; border-radius: 8px;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">${isCurrentMonth ? '今月の残り' : '月間残高'}</div>
+                    <div style="font-size: 1.4rem; font-weight: 800; color: ${balance >= 0 ? 'var(--primary-color)' : 'var(--danger-color)'}">￥${balance.toLocaleString()}</div>
+                    <div style="margin-top: 4px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                        <div style="width: ${percentage}%; height: 100%; background: ${progressColor};"></div>
+                    </div>
+                </div>
+                ${subPanelHtml}
+            </div>
+            <div style="display: flex; justify-content: space-around; font-size: 0.9rem; padding-top: 0.5rem; border-top: 1px solid var(--border-light);">
+                <div style="text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">収入</div>
                     <div style="color: var(--success-color); font-weight: 600;">￥${totalIncome.toLocaleString()}</div>
                 </div>
-                <div style="border-left: 1px solid var(--border-light); padding-left: 1rem;">
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">支出</div>
+                <div style="text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">支出</div>
                     <div style="color: var(--danger-color); font-weight: 600;">￥${totalExpense.toLocaleString()}</div>
                 </div>
             </div>
         `;
+    },
+
+    _updateCategoryList(year, month) {
+        const listContainer = document.getElementById('kakeibo-category-list');
+        if (!listContainer) return;
+
+        const ranking = this.getCategoryRanking(year, month);
+        if (ranking.length === 0) {
+            listContainer.innerHTML = '<div style="text-align: center; color: var(--text-tertiary); font-size: 0.85rem;">データなし</div>';
+            return;
+        }
+
+        const maxVal = ranking[0].amount;
+
+        listContainer.innerHTML = ranking.map(item => {
+            const percent = Math.round((item.amount / maxVal) * 100);
+            return `
+                <div class="category-list-item" data-category="${item.category}" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; cursor: pointer; padding: 4px; border-radius: 4px; transition: background 0.2s;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                        <span style="font-weight: 600; min-width: 60px;">${item.category}</span>
+                        <div style="flex: 1; height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden;">
+                            <div style="width: ${percent}%; height: 100%; background: var(--primary-light); border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                    <span style="font-weight: 700; color: var(--text-primary); margin-left: 12px;">￥${item.amount.toLocaleString()}</span>
+                </div>
+            `;
+        }).join('');
+    },
+
+    _notifyChange() {
+        // Trigger chart render if visible, which in turn updates dashboard
+        const canvas = document.getElementById('kakeibo-chart');
+        if (canvas) {
+            // Let the UI logic handle it or force generic update
+        }
+        // Force refresh all listeners
+        changeListeners.forEach(cb => cb());
+    },
+
+    _updateLegend(totalIncome, totalExpense) {
+        // Deprecated in favor of _updateDashboard but kept for compatibility
+        this._updateDashboard(totalIncome, totalExpense);
     }
 };

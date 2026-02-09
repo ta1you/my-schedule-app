@@ -74,22 +74,39 @@
             </div>
 
             <div id="kakeibo-view" class="finance-view" hidden style="padding:1rem;">
-                <h3 style="margin-top:0; font-size:1.1rem; margin-bottom: 1rem;">家計簿</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <button id="kakeibo-prev-month"
+                        style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M15 18l-6-6 6-6" />
+                        </svg>
+                    </button>
+                    <h3 id="kakeibo-month-label" style="margin: 0; font-size: 1.1rem;">家計簿</h3>
+                    <button id="kakeibo-next-month"
+                        style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M9 18l6-6-6-6" />
+                        </svg>
+                    </button>
+                </div>
                 <div id="kakeibo-legend"
                     style="background: white; padding: 1rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1rem;">
                 </div>
 
                 <form id="kakeibo-form"
                     style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem;">
-                    <div style="display: flex; justify-content: center; margin-bottom: 1rem; gap: 0.5rem;">
-                        <label style="cursor: pointer;">
-                            <input type="radio" name="ktype" value="expense" checked class="type-radio">
-                            <span class="type-btn">支出</span>
-                        </label>
-                        <label style="cursor: pointer;">
-                            <input type="radio" name="ktype" value="income" class="type-radio">
-                            <span class="type-btn">収入</span>
-                        </label>
+                    <div class="segment-group">
+                        <div class="segment-item">
+                            <input type="radio" name="ktype" value="expense" id="ktype-expense" checked
+                                class="segment-input">
+                            <label for="ktype-expense" class="segment-label">支出</label>
+                        </div>
+                        <div class="segment-item">
+                            <input type="radio" name="ktype" value="income" id="ktype-income" class="segment-input">
+                            <label for="ktype-income" class="segment-label">収入</label>
+                        </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
@@ -133,6 +150,7 @@
                 <div style="position:relative;">
                     <canvas id="kakeibo-chart" width="800" height="300" style="max-width:100%; height:300px;"></canvas>
                 </div>
+                <div id="kakeibo-category-list" style="margin-top: 1rem;"></div>
                 <div id="kakeibo-entries" style="margin-top:0.75rem;"></div>
             </div>
             <div id="settings-view" class="settings-view" hidden style="width: 100%; padding: 0.5rem; margin-top: 0;">

@@ -467,36 +467,147 @@ function setupKakeiboInteractions() {
 
     if (!canvas) return;
 
+    let activeCategoryFilter = null;
+    let viewYear = new Date().getFullYear();
+    let viewMonth = new Date().getMonth();
+
     function renderAndPopulate() {
         const mode = (modeSelect && modeSelect.value) || 'pie';
-        Kakeibo.renderChart(canvas, mode);
+        // Pass year and month to methods
+        Kakeibo.renderChart(canvas, mode, viewYear, viewMonth);
+        updateCategorySelectionUI();
+
+        // Update Title and Populate List
+        const titleLabel = document.getElementById('kakeibo-month-label');
+        if (titleLabel) {
+            titleLabel.textContent = `${viewYear}年${viewMonth + 1}月`;
+        }
         populateEntries();
+    }
+
+    // Navigation Listeners
+    const prevBtn = document.getElementById('kakeibo-prev-month');
+    const nextBtn = document.getElementById('kakeibo-next-month');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            viewMonth--;
+            if (viewMonth < 0) {
+                viewMonth = 11;
+                viewYear--;
+            }
+            activeCategoryFilter = null; // Clear filter on change
+            renderAndPopulate();
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            viewMonth++;
+            if (viewMonth > 11) {
+                viewMonth = 0;
+                viewYear++;
+            }
+            activeCategoryFilter = null;
+            renderAndPopulate();
+        });
+    }
+
+    // Helper to highlight selected category in the list
+    function updateCategorySelectionUI() {
+        // Wait briefly for DOM update if coming from renderChart, or just run
+        setTimeout(() => {
+            const listContainer = document.getElementById('kakeibo-category-list');
+            if (!listContainer) return;
+            const items = listContainer.querySelectorAll('.category-list-item');
+            items.forEach(el => {
+                // Reset basic styles first
+                el.style.background = 'transparent';
+                el.style.borderLeft = 'none';
+
+                if (activeCategoryFilter && el.dataset.category === activeCategoryFilter) {
+                    el.style.background = '#f1f5f9'; // Slight grey/blue
+                    el.style.borderLeft = '4px solid var(--primary-color)';
+                    el.style.paddingLeft = '8px'; // Add some padding for the border
+                } else {
+                    el.style.paddingLeft = '4px';
+                }
+            });
+        }, 0);
     }
 
     function populateEntries() {
         if (!entriesDiv) return;
-        const now = new Date();
-        const items = Kakeibo.getMonthlyEntries(now.getFullYear(), now.getMonth());
-        if (!items || items.length === 0) {
-            entriesDiv.innerHTML = '<div style="color:var(--text-secondary); text-align:center; padding:1rem;">データなし</div>';
-            return;
+        // Use viewYear/viewMonth instead of now
+        let items = Kakeibo.getMonthlyEntries(viewYear, viewMonth);
+
+        let headerHtml = '';
+
+        // Filter by category if one is selected
+        if (activeCategoryFilter) {
+            items = items.filter(it => it.category === activeCategoryFilter);
+            headerHtml = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border-left: 4px solid var(--primary-color);">
+                    <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary);">フィルタ: ${activeCategoryFilter}</span>
+                    <button class="btn-clear-filter" style="background: none; border: none; font-size: 0.8rem; color: var(--text-tertiary); cursor: pointer; text-decoration: underline;">解除</button>
+                </div>
+            `;
         }
-        items.sort((a, b) => new Date(b.date) - new Date(a.date));
-        entriesDiv.innerHTML = items.map(it => {
-            const day = new Date(it.date).getDate();
-            const isIncome = it.type === 'income';
-            return `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border-radius:8px; margin-bottom:8px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
-                    <div style="display:flex; flex-direction:column;">
-                        <span style="font-size:0.8rem; color:var(--text-tertiary);">${day}日 · ${it.category}</span>
-                        <span style="font-size:0.9rem; font-weight:500;">${it.note || '-'}</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-weight:700; color:${isIncome ? 'var(--success-color)' : 'var(--text-primary)'}; font-size:1rem;">${isIncome ? '+' : ''}￥${Number(it.amount).toLocaleString()}</span>
-                        <button class="btn-del-k" data-id="${it.id}" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:1.2rem;">×</button>
-                    </div>
-                </div>`;
-        }).join('');
+
+        if (!items || items.length === 0) {
+            const msg = activeCategoryFilter
+                ? `「${activeCategoryFilter}」の履歴はありません`
+                : 'データなし';
+            entriesDiv.innerHTML = headerHtml + `<div style="color:var(--text-secondary); text-align:center; padding:1rem;">${msg}</div>`;
+        } else {
+            items.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const entriesHtml = items.map(it => {
+                const day = new Date(it.date).getDate();
+                const isIncome = it.type === 'income';
+                return `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border-radius:8px; margin-bottom:8px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:0.8rem; color:var(--text-tertiary);">${day}日 · ${it.category}</span>
+                            <span style="font-size:0.9rem; font-weight:500;">${it.note || '-'}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-weight:700; color:${isIncome ? 'var(--success-color)' : 'var(--text-primary)'}; font-size:1rem;">${isIncome ? '+' : ''}￥${Number(it.amount).toLocaleString()}</span>
+                            <button class="btn-del-k" data-id="${it.id}" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:1.2rem;">×</button>
+                        </div>
+                    </div>`;
+            }).join('');
+            entriesDiv.innerHTML = headerHtml + entriesHtml;
+        }
+
+        // Attach listener for clear button dynamically
+        const clearBtn = entriesDiv.querySelector('.btn-clear-filter');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                activeCategoryFilter = null;
+                updateCategorySelectionUI();
+                populateEntries();
+            });
+        }
+    }
+
+    // Event delegation for category list clicks
+    const listContainer = document.getElementById('kakeibo-category-list');
+    if (listContainer) {
+        // Remove previous listener if any (conceptually, though simple replacement works here)
+        // using a flag or just adding it once? setupKakeiboInteractions is called once on init.
+        listContainer.addEventListener('click', (e) => {
+            const item = e.target.closest('.category-list-item');
+            if (item) {
+                const cat = item.dataset.category;
+                if (activeCategoryFilter === cat) {
+                    activeCategoryFilter = null; // Toggle off
+                } else {
+                    activeCategoryFilter = cat;
+                }
+                updateCategorySelectionUI();
+                populateEntries();
+            }
+        });
     }
 
     if (entriesDiv) entriesDiv.addEventListener('click', (e) => {
