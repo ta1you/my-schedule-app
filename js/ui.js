@@ -32,9 +32,17 @@ export const UI = {
             schedules = schedules.filter(s => (s.category || 'その他') === this.currentCategory);
         }
 
-        const today = getTodayString();
+        // Use inline date formatting to ensure latest logic is applied regardless of utils.js cache
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const today = `${year}-${month}-${day}`;
+
+        console.log('Filtering schedules. Today:', today);
+
         // Filter out past schedules (keep today and future)
-        schedules = schedules.filter(s => s.date >= today);
+        schedules = schedules.filter(s => s.date && s.date >= today);
 
         // Sort by date (ascending)
         schedules.sort((a, b) => {
