@@ -83,9 +83,14 @@ export const UI = {
             el.dataset.id = schedule.id; // For click event
             el.onclick = () => window.openEditModal(schedule.id);
 
-            const timeStr = (schedule.startTime && schedule.endTime)
-                ? `${schedule.startTime} - ${schedule.endTime}`
-                : (schedule.startTime || '終日');
+            let timeStr = '終日';
+            if (schedule.startTime && schedule.endTime) {
+                timeStr = `${schedule.startTime} 〜 ${schedule.endTime}`;
+            } else if (schedule.startTime) {
+                timeStr = schedule.startTime;
+            } else if (schedule.endTime) {
+                timeStr = schedule.endTime;
+            }
 
             const category = schedule.category || 'その他';
             const categoryClass = `category-badge category-${category}`;
