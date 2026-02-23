@@ -4,6 +4,8 @@ import { generateId, getTodayString } from './utils.js';
 import { Calendar } from './calendar.js';
 import { Finance } from './finance.js';
 import { Kakeibo } from './kakeibo.js';
+import { Bookkeeping } from './bookkeeping.js';
+import { Notes } from './notes.js';
 import { Settings } from './settings.js';
 
 // Register Service Worker
@@ -59,6 +61,14 @@ document.addEventListener('DOMContentLoaded', () => {
     Kakeibo.init(() => {
         if (window.renderKakeiboView) window.renderKakeiboView();
     });
+
+    Bookkeeping.init(() => {
+        if (window.renderBookkeepingView) window.renderBookkeepingView();
+    });
+
+    Notes.init(() => {
+        if (window.renderNotesView) window.renderNotesView();
+    });
 });
 
 function setupEventListeners() {
@@ -90,11 +100,13 @@ function setupEventListeners() {
     const btnCalendar = document.getElementById('btn-view-calendar');
     const btnFinance = document.getElementById('btn-finance');
     const btnKakeibo = document.getElementById('btn-kakeibo'); // New button
+    const btnBookkeeping = document.getElementById('btn-bookkeeping');
     const btnSettings = document.getElementById('btn-settings');
     const listView = document.getElementById('schedule-list');
     const calendarView = document.getElementById('calendar-view');
     const financeView = document.getElementById('finance-view');
     const kakeiboView = document.getElementById('kakeibo-view'); // New view
+    const bookkeepingView = document.getElementById('bookkeeping-view');
     const settingsView = document.getElementById('settings-view');
 
     // Helper to set view state; uses both attribute and fallback class for robustness
@@ -107,6 +119,9 @@ function setupEventListeners() {
         calendarView.hidden = true;
         if (financeView) financeView.hidden = true;
         if (kakeiboView) kakeiboView.hidden = true;
+        if (bookkeepingView) bookkeepingView.hidden = true;
+        const notesView = document.getElementById('notes-view');
+        if (notesView) notesView.hidden = true;
         if (settingsView) settingsView.hidden = true;
 
         listView.style.display = 'none';
@@ -118,6 +133,9 @@ function setupEventListeners() {
         btnCalendar.classList.remove('active');
         if (btnFinance) btnFinance.classList.remove('active');
         if (btnKakeibo) btnKakeibo.classList.remove('active');
+        if (btnBookkeeping) btnBookkeeping.classList.remove('active');
+        const btnNotes = document.getElementById('btn-notes');
+        if (btnNotes) btnNotes.classList.remove('active');
         if (btnSettings) btnSettings.classList.remove('active');
 
         // Default FAB visibility
@@ -168,6 +186,28 @@ function setupEventListeners() {
 
             if (window.renderKakeiboView) window.renderKakeiboView();
 
+        } else if (viewName === 'bookkeeping') {
+            if (bookkeepingView) bookkeepingView.hidden = false;
+            if (btnBookkeeping) btnBookkeeping.classList.add('active');
+            if (categoryTabs) categoryTabs.hidden = true;
+
+            const bdate = document.getElementById('book-date');
+            if (bdate) bdate.value = getTodayString();
+
+            if (window.renderBookkeepingView) window.renderBookkeepingView();
+
+        } else if (viewName === 'notes') {
+            const notesView = document.getElementById('notes-view');
+            const btnNotes = document.getElementById('btn-notes');
+            if (notesView) notesView.hidden = false;
+            if (btnNotes) btnNotes.classList.add('active');
+            if (categoryTabs) categoryTabs.hidden = true;
+
+            const ndate = document.getElementById('note-date');
+            if (ndate) ndate.value = getTodayString();
+
+            if (window.renderNotesView) window.renderNotesView();
+
         } else if (viewName === 'settings') {
             if (settingsView) {
                 settingsView.hidden = false;
@@ -189,6 +229,9 @@ function setupEventListeners() {
     btnCalendar.addEventListener('click', () => setView('calendar'));
     if (btnFinance) btnFinance.addEventListener('click', () => setView('finance'));
     if (btnKakeibo) btnKakeibo.addEventListener('click', () => setView('kakeibo'));
+    if (btnBookkeeping) btnBookkeeping.addEventListener('click', () => setView('bookkeeping'));
+    const btnNotes = document.getElementById('btn-notes');
+    if (btnNotes) btnNotes.addEventListener('click', () => setView('notes'));
     if (btnSettings) btnSettings.addEventListener('click', () => setView('settings'));
 
     // Handle finance form submission
@@ -477,7 +520,115 @@ function setupEventListeners() {
     // Backup & Restore
 
     setupFinanceInteractions();
+
+    function setupBookkeepingInteractions() {
+        const journalList = document.getElementById('journal-list');
+        const form = document.getElementById('bookkeeping-form');
+        const ledgerSelect = document.getElementById('ledger-account-select');
+
+        if (!form) return;
+
+        let viewYear = new Date().getFullYear();
+        let viewMonth = new Date().getMonth();
+
+        function renderAndPopulate() {
+            Bookkeeping.render(viewYear, viewMonth);
+            // Update month label
+            const monthLabel = document.getElementById('book-month-label');
+            if (monthLabel) {
+                monthLabel.textContent = `${viewYear}年${viewMonth + 1}月`;
+            }
+        }
+
+        // Sub-view switching
+        const btnInput = document.getElementById('btn-book-input');
+        const btnJournal = document.getElementById('btn-book-journal');
+        const btnLedger = document.getElementById('btn-book-ledger');
+        const secInput = document.getElementById('book-input-section');
+        const secJournal = document.getElementById('book-journal-section');
+        const secLedger = document.getElementById('book-ledger-section');
+
+        function setSubView(v) {
+            [secInput, secJournal, secLedger].forEach(s => s.hidden = true);
+            [btnInput, btnJournal, btnLedger].forEach(b => b.classList.remove('active'));
+
+            if (v === 'input') {
+                secInput.hidden = false;
+                btnInput.classList.add('active');
+            } else if (v === 'journal') {
+                secJournal.hidden = false;
+                btnJournal.classList.add('active');
+            } else if (v === 'ledger') {
+                secLedger.hidden = false;
+                btnLedger.classList.add('active');
+            }
+            renderAndPopulate();
+        }
+
+        btnInput.addEventListener('click', () => setSubView('input'));
+        btnJournal.addEventListener('click', () => setSubView('journal'));
+        btnLedger.addEventListener('click', () => setSubView('ledger'));
+
+        // Month Navigation for Journal
+        document.getElementById('book-prev-month').addEventListener('click', () => {
+            viewMonth--;
+            if (viewMonth < 0) {
+                viewMonth = 11;
+                viewYear--;
+            }
+            renderAndPopulate();
+        });
+
+        document.getElementById('book-next-month').addEventListener('click', () => {
+            viewMonth++;
+            if (viewMonth > 11) {
+                viewMonth = 0;
+                viewYear++;
+            }
+            renderAndPopulate();
+        });
+
+        // Form submit
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const date = document.getElementById('book-date').value;
+            const debit = document.getElementById('book-debit').value;
+            const credit = document.getElementById('book-credit').value;
+            const amount = Number(document.getElementById('book-amount').value) || 0;
+
+            if (debit === credit) {
+                alert('借方と貸方に同じ科目は選択できません');
+                return;
+            }
+
+            Bookkeeping.saveEntry({ date, debit, credit, amount });
+
+            // Reset form except date
+            document.getElementById('book-amount').value = '';
+            alert('登録しました');
+            setSubView('journal'); // Switch to journal to see entry
+        });
+
+        // Ledger change
+        if (ledgerSelect) {
+            ledgerSelect.addEventListener('change', renderAndPopulate);
+        }
+
+        // Global delete
+        window.deleteBookEntry = (id) => {
+            if (confirm('この仕訳を削除しますか？')) {
+                Bookkeeping.deleteEntry(id);
+                renderAndPopulate();
+            }
+        };
+
+        window.renderBookkeepingView = renderAndPopulate;
+        renderAndPopulate();
+    }
+
     setupKakeiboInteractions();
+    setupBookkeepingInteractions();
+    setupNotesInteractions();
 }
 
 // Separate Kakeibo setup
@@ -642,6 +793,74 @@ function setupKakeiboInteractions() {
     if (modeSelect) modeSelect.addEventListener('change', renderAndPopulate);
     window.renderKakeiboView = renderAndPopulate;
     renderAndPopulate(); // Initial
+}
+
+function setupNotesInteractions() {
+    const form = document.getElementById('note-form');
+    const imageInput = document.getElementById('note-image-input');
+    const preview = document.getElementById('note-image-preview');
+    let currentImageData = null;
+
+    if (!form) return;
+
+    function render() {
+        Notes.render();
+    }
+
+    imageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            currentImageData = event.target.result;
+            preview.textContent = file.name;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = document.getElementById('note-title').value;
+        const content = document.getElementById('note-content').value;
+        const date = document.getElementById('note-date').value || getTodayString();
+
+        if (!content && !title && !currentImageData) return;
+
+        Notes.save({
+            title,
+            content,
+            date,
+            image: currentImageData
+        });
+
+        form.reset();
+        preview.textContent = '';
+        currentImageData = null;
+        document.getElementById('note-date').value = getTodayString();
+    });
+
+    window.openImageModal = (src) => {
+        const modal = document.getElementById('image-modal');
+        const modalImg = document.getElementById('img01');
+        if (!modal || !modalImg) return;
+        modal.style.display = "flex";
+        modalImg.src = src;
+    };
+
+    window.closeImageModal = () => {
+        const modal = document.getElementById('image-modal');
+        if (modal) modal.style.display = "none";
+    };
+
+    window.deleteNote = (id) => {
+        if (confirm('この付箋を削除しますか？')) {
+            Notes.delete(id);
+        }
+    };
+
+    window.renderNotesView = render;
+    render();
 }
 
 

@@ -4,7 +4,9 @@ export const Settings = {
         showList: true,
         showCalendar: true,
         showFinance: true,
-        showKakeibo: true
+        showKakeibo: true,
+        showBookkeeping: true,
+        showNotes: true
     },
 
     // Current preferences
@@ -52,11 +54,15 @@ export const Settings = {
         const toggleCalendar = document.getElementById('toggle-calendar');
         const toggleFinance = document.getElementById('toggle-finance');
         const toggleKakeibo = document.getElementById('toggle-kakeibo');
+        const toggleBookkeeping = document.getElementById('toggle-bookkeeping');
 
         if (toggleList) toggleList.checked = this.prefs.showList;
         if (toggleCalendar) toggleCalendar.checked = this.prefs.showCalendar;
         if (toggleFinance) toggleFinance.checked = this.prefs.showFinance;
         if (toggleKakeibo) toggleKakeibo.checked = this.prefs.showKakeibo;
+        if (toggleBookkeeping) toggleBookkeeping.checked = this.prefs.showBookkeeping;
+        const toggleNotes = document.getElementById('toggle-notes');
+        if (toggleNotes) toggleNotes.checked = this.prefs.showNotes;
     },
 
     // Apply settings (show/hide tabs)
@@ -65,44 +71,59 @@ export const Settings = {
         const btnCalendar = document.getElementById('btn-view-calendar');
         const btnFinance = document.getElementById('btn-finance');
         const btnKakeibo = document.getElementById('btn-kakeibo');
+        const btnBookkeeping = document.getElementById('btn-bookkeeping');
 
         if (btnList) btnList.style.display = this.prefs.showList ? '' : 'none';
         if (btnCalendar) btnCalendar.style.display = this.prefs.showCalendar ? '' : 'none';
         if (btnFinance) btnFinance.style.display = this.prefs.showFinance ? '' : 'none';
         if (btnKakeibo) btnKakeibo.style.display = this.prefs.showKakeibo ? '' : 'none';
+        if (btnBookkeeping) btnBookkeeping.style.display = this.prefs.showBookkeeping ? '' : 'none';
+        const btnNotes = document.getElementById('btn-notes');
+        if (btnNotes) btnNotes.style.display = this.prefs.showNotes ? '' : 'none';
     },
 
     // Setup event listeners for settings controls
     setupEventListeners() {
-        const toggleList = document.getElementById('toggle-list');
-        const toggleCalendar = document.getElementById('toggle-calendar');
-        const toggleFinance = document.getElementById('toggle-finance');
-        const toggleKakeibo = document.getElementById('toggle-kakeibo');
+        const tList = document.getElementById('toggle-list');
+        const tCalendar = document.getElementById('toggle-calendar');
+        const tFinance = document.getElementById('toggle-finance');
+        const tKakeibo = document.getElementById('toggle-kakeibo');
+        const tBookkeeping = document.getElementById('toggle-bookkeeping');
+        const tNotes = document.getElementById('toggle-notes');
 
-        if (toggleList) {
-            toggleList.addEventListener('change', (e) => {
+        if (tList) {
+            tList.addEventListener('change', (e) => {
                 this.prefs.showList = e.target.checked;
                 this.save();
             });
         }
-
-        if (toggleCalendar) {
-            toggleCalendar.addEventListener('change', (e) => {
+        if (tCalendar) {
+            tCalendar.addEventListener('change', (e) => {
                 this.prefs.showCalendar = e.target.checked;
                 this.save();
             });
         }
-
-        if (toggleFinance) {
-            toggleFinance.addEventListener('change', (e) => {
+        if (tFinance) {
+            tFinance.addEventListener('change', (e) => {
                 this.prefs.showFinance = e.target.checked;
                 this.save();
             });
         }
-
-        if (toggleKakeibo) {
-            toggleKakeibo.addEventListener('change', (e) => {
+        if (tKakeibo) {
+            tKakeibo.addEventListener('change', (e) => {
                 this.prefs.showKakeibo = e.target.checked;
+                this.save();
+            });
+        }
+        if (tBookkeeping) {
+            tBookkeeping.addEventListener('change', (e) => {
+                this.prefs.showBookkeeping = e.target.checked;
+                this.save();
+            });
+        }
+        if (tNotes) {
+            tNotes.addEventListener('change', (e) => {
+                this.prefs.showNotes = e.target.checked;
                 this.save();
             });
         }

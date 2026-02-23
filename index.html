@@ -153,6 +153,117 @@
                 <div id="kakeibo-category-list" style="margin-top: 1rem;"></div>
                 <div id="kakeibo-entries" style="margin-top:0.75rem;"></div>
             </div>
+
+            <div id="bookkeeping-view" class="finance-view" hidden style="padding:1rem;">
+                <h3 style="margin-top:0; font-size:1.1rem; text-align:center;">帳簿</h3>
+
+                <div class="view-toggle"
+                    style="width:100%; justify-content:center; margin-bottom:1rem; background: #f1f5f9;">
+                    <button type="button" class="btn active" id="btn-book-input">仕訳入力</button>
+                    <button type="button" class="btn" id="btn-book-journal">仕訳帳</button>
+                    <button type="button" class="btn" id="btn-book-ledger">総勘定元帳</button>
+                </div>
+
+                <!-- Input View -->
+                <div id="book-input-section">
+                    <form id="bookkeeping-form" style="background: #f8fafc; padding: 1rem; border-radius: 12px;">
+                        <div style="margin-bottom: 0.75rem;">
+                            <label style="font-size:0.8rem; color:var(--text-secondary);">日付</label>
+                            <input type="date" id="book-date" required>
+                        </div>
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+                            <div>
+                                <label style="font-size:0.8rem; color:var(--text-secondary);">借方 (Debit)</label>
+                                <select id="book-debit" required>
+                                    <option value="">選択してください</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:var(--text-secondary);">貸方 (Credit)</label>
+                                <select id="book-credit" required>
+                                    <option value="">選択してください</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="font-size:0.8rem; color:var(--text-secondary);">金額</label>
+                            <input type="number" id="book-amount" placeholder="金額を入力" required
+                                style="font-size:1.1rem;">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width:100%;">仕訳を登録</button>
+                    </form>
+                </div>
+
+                <!-- Journal View -->
+                <div id="book-journal-section" hidden>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; background: #f8fafc; padding: 10px; border-radius: 12px;">
+                        <button id="book-prev-month"
+                            style="background: white; border: 1px solid var(--border-light); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M15 18l-6-6 6-6" />
+                            </svg>
+                        </button>
+                        <h4 id="book-month-label" style="margin: 0; font-size: 1rem; font-weight: 600;">2026年2月</h4>
+                        <button id="book-next-month"
+                            style="background: white; border: 1px solid var(--border-light); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M9 18l6-6-6-6" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="journal-list" class="journal-list"></div>
+                </div>
+
+                <!-- Ledger View -->
+                <div id="book-ledger-section" hidden>
+                    <div style="margin-bottom:1rem;">
+                        <select id="ledger-account-select" style="padding:10px; border-radius:8px;">
+                            <option value="">科目を選択してください</option>
+                        </select>
+                    </div>
+                    <div class="ledger-header"
+                        style="display:grid; grid-template-columns: 45px 1fr 80px 80px; gap:4px; font-size:0.75rem; color:var(--text-secondary); font-weight:bold; padding-bottom:4px; border-bottom:1px solid var(--border-light);">
+                        <span>日付</span><span>相手科目</span><span style="text-align:right;">借方</span><span
+                            style="text-align:right;">貸方</span>
+                    </div>
+                    <div id="ledger-list" class="ledger-list" style="margin-top:0.5rem;"></div>
+                    <div id="ledger-balance"
+                        style="margin-top:1rem; padding:1rem; background:#f8fafc; border-radius:8px; text-align:right; font-weight:bold; font-size:1.1rem; color:var(--primary-dark);">
+                    </div>
+                </div>
+            </div>
+
+            <div id="notes-view" class="finance-view" hidden style="padding:1rem;">
+                <h3 style="margin-top:0; font-size:1.1rem; text-align:center;">付箋</h3>
+
+                <form id="note-form" class="note-form">
+                    <input type="text" id="note-title" class="note-title-input" placeholder="タイトル" autocomplete="off">
+                    <textarea id="note-content" class="note-content-input" placeholder="メモを入力..." rows="3"></textarea>
+
+                    <div class="note-form-footer">
+                        <input type="date" id="note-date" class="note-date-input">
+                        <label for="note-image-input" class="btn btn-secondary btn-note-image">
+                            📷 画像
+                            <input type="file" id="note-image-input" accept="image/*" style="display:none;">
+                        </label>
+                        <div id="note-image-preview" class="note-image-preview"></div>
+                        <button type="submit" class="btn btn-primary btn-note-save">保存</button>
+                    </div>
+                </form>
+
+                <div id="notes-container"></div>
+            </div>
+
+            <!-- Image Modal -->
+            <div id="image-modal" class="image-modal" style="display:none;">
+                <span class="image-modal-close" onclick="window.closeImageModal()">&times;</span>
+                <img class="image-modal-content" id="img01">
+            </div>
+
             <div id="settings-view" class="settings-view" hidden style="width: 100%; padding: 0.5rem; margin-top: 0;">
                 <h3 style="margin-top: 0; font-size: 1.25rem; margin-bottom: 0.5rem; padding-left: 0.5rem;">設定</h3>
                 <div class="settings-section"
@@ -186,6 +297,20 @@
                         <span class="toggle-label">家計簿</span>
                         <label class="switch">
                             <input type="checkbox" id="toggle-kakeibo" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <span class="toggle-label">帳簿</span>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-bookkeeping" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <span class="toggle-label">付箋</span>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-notes" checked>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -269,6 +394,14 @@
         <button type="button" class="nav-item" id="btn-kakeibo">
             <span class="nav-icon">🏠</span>
             <span class="nav-label">家計簿</span>
+        </button>
+        <button type="button" class="nav-item" id="btn-bookkeeping">
+            <span class="nav-icon">📖</span>
+            <span class="nav-label">帳簿</span>
+        </button>
+        <button type="button" class="nav-item" id="btn-notes">
+            <span class="nav-icon">📌</span>
+            <span class="nav-label">付箋</span>
         </button>
         <button type="button" class="nav-item" id="btn-settings">
             <span class="nav-icon">⚙️</span>
