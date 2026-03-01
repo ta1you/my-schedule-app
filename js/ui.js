@@ -112,104 +112,145 @@ export const UI = {
     },
 
     render() {
-        let schedules = Storage.getAll();
-
-        if (this.currentCategory !== 'all') {
-            schedules = schedules.filter(s => (s.category || 'その他') === this.currentCategory);
-        }
-
-        const d = new Date();
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const today = `${year}-${month}-${day}`;
-
-        schedules = schedules.filter(s => s.date && s.date >= today);
-
-        schedules.sort((a, b) => {
-            if (a.date !== b.date) return a.date.localeCompare(b.date);
-            return (a.startTime || '').localeCompare(b.startTime || '');
-        });
-
         this.listElement.innerHTML = '';
+        const schedules = Storage.getAll();
 
-        if (schedules.length === 0) {
-            this.listElement.innerHTML = `
-                <div style="text-align: center; color: var(--text-secondary); padding: 2rem;">
-                    <p>予定がありません</p>
-                    <p>+ボタンで追加してください</p>
-                </div>
-            `;
-            return;
+        const timetableContainer = document.createElement('div');
+        timetableContainer.className = 'timetable-container';
+
+        // 1. Header (Dates)
+        const header = document.createElement('div');
+        header.className = 'timetable-header';
+
+        // 2. Body (Time Axis + Grid)
+        const gridContainer = document.createElement('div');
+        gridContainer.className = 'timetable-grid-container';
+
+        const timeAxis = document.createElement('div');
+        timeAxis.className = 'timetable-time-axis';
+        for (let i = 0; i < 24; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'time-slot-label';
+            slot.textContent = `${i}:00`;
+            timeAxis.appendChild(slot);
         }
 
-        let currentDate = null;
+        const grid = document.createElement('div');
+        grid.className = 'timetable-grid';
 
-        schedules.forEach(schedule => {
-            if (schedule.date !== currentDate) {
-                currentDate = schedule.date;
-                const dateHeader = document.createElement('h3');
-                dateHeader.style.cssText = 'font-size: 0.9rem; color: var(--text-secondary); margin-top: 1rem; margin-bottom: 0.5rem;';
+        // Generate next 14 days
+        const today = new Date();
+        for (let i = 0; i < 14; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            const dateStr = date.toISOString().split('T')[0];
 
-                const dateObj = new Date(currentDate);
-                const dayStr = dateObj.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', weekday: 'short' });
+            // Header day
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'timetable-header-day';
+            if (i === 0) dayHeader.classList.add('is-today');
 
-                dateHeader.textContent = isToday(dateObj) ? `今日 (${dayStr})` : dayStr;
-                if (isToday(dateObj)) dateHeader.id = 'header-today';
-                this.listElement.appendChild(dateHeader);
+            const dayNum = document.createElement('div');
+            dayNum.className = 'day-num';
+            dayNum.textContent = date.getDate();
+
+            const dayName = document.createElement('div');
+            dayName.className = 'day-name';
+            dayName.textContent = date.toLocaleDateString('ja-JP', { weekday: 'short' });
+
+            dayHeader.appendChild(dayNum);
+            dayHeader.appendChild(dayName);
+            header.appendChild(dayHeader);
+
+            // Column
+            const column = document.createElement('div');
+            column.className = 'timetable-day-column';
+            column.dataset.date = dateStr;
+
+            // Fill with entries
+            let daySchedules = schedules.filter(s => s.date === dateStr);
+
+            // Apply category filter
+            if (this.currentCategory !== 'all') {
+                daySchedules = daySchedules.filter(s => (s.category || 'その他') === this.currentCategory);
             }
 
-            const el = document.createElement('div');
-            el.className = 'schedule-item';
-            el.dataset.id = schedule.id;
+            daySchedules.forEach(s => {
+                const entry = this.createEntry(s);
+                column.appendChild(entry);
+            });
 
-            let timeStr = '終日';
-            if (schedule.startTime && schedule.endTime) {
-                timeStr = `${schedule.startTime} 〜 ${schedule.endTime}`;
-            } else if (schedule.startTime) {
-                timeStr = schedule.startTime;
-            } else if (schedule.endTime) {
-                timeStr = schedule.endTime;
+            grid.appendChild(column);
+        }
+
+        gridContainer.appendChild(timeAxis);
+        gridContainer.appendChild(grid);
+
+        timetableContainer.appendChild(header);
+        timetableContainer.appendChild(gridContainer);
+        this.listElement.appendChild(timetableContainer);
+
+        // Sync scrolling
+        gridContainer.onscroll = () => {
+            header.scrollLeft = gridContainer.scrollLeft;
+        };
+
+        // Add 'Now' line
+        this.updateNowLine(grid);
+        if (this.nowInterval) clearInterval(this.nowInterval);
+        this.nowInterval = setInterval(() => this.updateNowLine(grid), 60000);
+    },
+
+    createEntry(s) {
+        const el = document.createElement('div');
+        el.className = `timetable-entry category-${s.category || 'その他'}`;
+
+        // Calculate position
+        let top = 0;
+        let height = 60;
+
+        if (s.startTime) {
+            const [h, m] = s.startTime.split(':').map(Number);
+            top = (h * 60) + m;
+
+            if (s.endTime) {
+                const [eh, em] = s.endTime.split(':').map(Number);
+                height = (eh * 60 + em) - top;
             }
+        } else {
+            // Full day or no time? Default to top and small height?
+            // For timetable, let's put them at the top or a specific area?
+            // Following current logic:
+            top = 0;
+            height = 40;
+            el.classList.add('is-all-day');
+        }
 
-            const category = schedule.category || 'その他';
-            const categoryClass = `category-badge category-${category}`;
+        el.style.top = `${top}px`;
+        el.style.height = `${Math.max(20, height)}px`;
 
-            el.innerHTML = `
-                <div class="schedule-item-actions">
-                    <button type="button" class="btn-swipe-delete" aria-label="削除">
-                        <span style="font-size: 1.2rem;">🗑️</span>
-                        <span style="font-size: 0.7rem;">削除</span>
-                    </button>
-                </div>
-                <div class="schedule-item-inner">
-                    <div class="schedule-time">${timeStr}</div>
-                    <div class="schedule-title">${escapeHtml(schedule.title)}</div>
-                    <div class="${categoryClass}">${escapeHtml(category)}</div>
-                    ${schedule.description ? `<div class="schedule-desc">${escapeHtml(schedule.description)}</div>` : ''}
-                </div>
-            `;
+        el.innerHTML = `
+            <div class="entry-title">${escapeHtml(s.title)}</div>
+            ${s.startTime ? `<div class="entry-time">${s.startTime}${s.endTime ? ' - ' + s.endTime : ''}</div>` : ''}
+        `;
 
-            // Setup events
-            const inner = el.querySelector('.schedule-item-inner');
-            inner.onclick = (e) => {
-                if (this.swipeState.activeElement) {
-                    this.closeSwipe(this.swipeState.activeElement);
-                    e.stopPropagation();
-                    return;
-                }
-                window.openEditModal(schedule.id);
-            };
+        el.onclick = () => window.openEditModal(s.id);
 
-            const delBtn = el.querySelector('.btn-swipe-delete');
-            delBtn.onclick = (e) => {
-                e.stopPropagation();
-                this.handleDelete(schedule.id);
-            };
+        return el;
+    },
 
-            this.initSwipe(el);
-            this.listElement.appendChild(el);
-        });
+    updateNowLine(grid) {
+        if (!grid) return;
+        let line = grid.querySelector('.timetable-now-line');
+        if (!line) {
+            line = document.createElement('div');
+            line.className = 'timetable-now-line';
+            grid.appendChild(line);
+        }
+
+        const now = new Date();
+        const top = (now.getHours() * 60) + now.getMinutes();
+        line.style.top = `${top}px`;
     }
 };
 
