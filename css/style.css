@@ -323,7 +323,8 @@ body {
     justify-content: flex-end;
     align-items: center;
     z-index: 1;
-    background: var(--danger-color);
+    background: #f1f5f9;
+    /* Match body background for a clean look */
 }
 
 .btn-swipe-delete {
@@ -340,10 +341,16 @@ body {
     font-weight: 700;
     cursor: pointer;
     gap: 4px;
+    transition: background 0.2s;
+}
+
+.btn-swipe-delete:active {
+    background: #dc2626;
+    /* Darker red on press */
 }
 
 .btn-swipe-delete i {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
 }
 
 .schedule-item.swiping .schedule-item-inner {

@@ -178,7 +178,8 @@ export const UI = {
             el.innerHTML = `
                 <div class="schedule-item-actions">
                     <button type="button" class="btn-swipe-delete" aria-label="削除">
-                        <span>削除</span>
+                        <span style="font-size: 1.2rem;">🗑️</span>
+                        <span style="font-size: 0.7rem;">削除</span>
                     </button>
                 </div>
                 <div class="schedule-item-inner">
