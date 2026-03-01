@@ -2,11 +2,13 @@ import { Storage } from './storage.js';
 import { UI } from './ui.js';
 import { generateId, getTodayString } from './utils.js';
 import { Calendar } from './calendar.js';
+import { Schedule2 } from './schedule2.js';
 import { Finance } from './finance.js';
 import { Kakeibo } from './kakeibo.js';
 import { Bookkeeping } from './bookkeeping.js';
 import { Notes } from './notes.js';
 import { Settings } from './settings.js';
+
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
@@ -41,34 +43,17 @@ if ('serviceWorker' in navigator) {
 
 document.addEventListener('DOMContentLoaded', () => {
     UI.init();
-    Calendar.init(); // Init calendar first so it finds the element
-    Settings.init(); // Init settings (creates listeners)
+    Calendar.init();
+    Schedule2.init();
+    Settings.init();
 
-    // Init Storage with callback to refresh UI and Calendar
     Storage.init(() => {
         UI.render();
         Calendar.refresh();
+        Schedule2.render();
     });
-
-    // Actually, setupEventListeners defines 'window.renderFinanceView'. 
 
     setupEventListeners();
-
-    Finance.init(() => {
-        if (window.renderFinanceView) window.renderFinanceView();
-    });
-
-    Kakeibo.init(() => {
-        if (window.renderKakeiboView) window.renderKakeiboView();
-    });
-
-    Bookkeeping.init(() => {
-        if (window.renderBookkeepingView) window.renderBookkeepingView();
-    });
-
-    Notes.init(() => {
-        if (window.renderNotesView) window.renderNotesView();
-    });
 });
 
 function setupEventListeners() {
@@ -98,12 +83,14 @@ function setupEventListeners() {
     // View Switching
     const btnList = document.getElementById('btn-view-list');
     const btnCalendar = document.getElementById('btn-view-calendar');
+    const btnSchedule2 = document.getElementById('btn-view-schedule2');
     const btnFinance = document.getElementById('btn-finance');
     const btnKakeibo = document.getElementById('btn-kakeibo'); // New button
     const btnBookkeeping = document.getElementById('btn-bookkeeping');
     const btnSettings = document.getElementById('btn-settings');
     const listView = document.getElementById('schedule-list');
     const calendarView = document.getElementById('calendar-view');
+    const schedule2View = document.getElementById('schedule2-view');
     const financeView = document.getElementById('finance-view');
     const kakeiboView = document.getElementById('kakeibo-view'); // New view
     const bookkeepingView = document.getElementById('bookkeeping-view');
@@ -117,6 +104,7 @@ function setupEventListeners() {
         // Hide all views first
         listView.hidden = true;
         calendarView.hidden = true;
+        if (schedule2View) schedule2View.hidden = true;
         if (financeView) financeView.hidden = true;
         if (kakeiboView) kakeiboView.hidden = true;
         if (bookkeepingView) bookkeepingView.hidden = true;
@@ -131,6 +119,7 @@ function setupEventListeners() {
         // Deactivate all buttons
         btnList.classList.remove('active');
         btnCalendar.classList.remove('active');
+        if (btnSchedule2) btnSchedule2.classList.remove('active');
         if (btnFinance) btnFinance.classList.remove('active');
         if (btnKakeibo) btnKakeibo.classList.remove('active');
         if (btnBookkeeping) btnBookkeeping.classList.remove('active');
@@ -165,6 +154,11 @@ function setupEventListeners() {
                 categoryTabs.hidden = true;
                 categoryTabs.style.display = 'none';
             }
+        } else if (viewName === 'schedule2') {
+            if (schedule2View) schedule2View.hidden = false;
+            if (btnSchedule2) btnSchedule2.classList.add('active');
+            if (categoryTabs) categoryTabs.hidden = true;
+            Schedule2.render();
         } else if (viewName === 'finance') {
             if (financeView) financeView.hidden = false;
             if (btnFinance) btnFinance.classList.add('active');
@@ -227,6 +221,7 @@ function setupEventListeners() {
 
     btnList.addEventListener('click', () => setView('list'));
     btnCalendar.addEventListener('click', () => setView('calendar'));
+    if (btnSchedule2) btnSchedule2.addEventListener('click', () => setView('schedule2'));
     if (btnFinance) btnFinance.addEventListener('click', () => setView('finance'));
     if (btnKakeibo) btnKakeibo.addEventListener('click', () => setView('kakeibo'));
     if (btnBookkeeping) btnBookkeeping.addEventListener('click', () => setView('bookkeeping'));
