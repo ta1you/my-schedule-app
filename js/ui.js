@@ -3,6 +3,14 @@ import { getTodayString } from './utils.js';
 
 export const UI = {
     currentCategory: 'all',
+    swipeState: {
+        activeElement: null,
+        startX: 0,
+        currentX: 0,
+        startTime: 0,
+        threshold: 50, // min swipe to show delete
+        maxSwipe: -80  // width of delete button
+    },
 
     init() {
         this.listElement = document.getElementById('schedule-list');
@@ -25,6 +33,84 @@ export const UI = {
         });
     },
 
+    initSwipe(el) {
+        const inner = el.querySelector('.schedule-item-inner');
+        const id = el.dataset.id;
+        let isSwiping = false;
+
+        el.addEventListener('touchstart', (e) => {
+            // Close any other open swipe actions
+            if (this.swipeState.activeElement && this.swipeState.activeElement !== el) {
+                this.closeSwipe(this.swipeState.activeElement);
+            }
+
+            this.swipeState.startX = e.touches[0].clientX;
+            this.swipeState.startTime = Date.now();
+            el.classList.add('swiping');
+            isSwiping = false;
+        }, { passive: true });
+
+        el.addEventListener('touchmove', (e) => {
+            const diffX = e.touches[0].clientX - this.swipeState.startX;
+            // Only allow left swipe
+            if (diffX < 0) {
+                // Limit swipe distance
+                const moveX = Math.max(diffX, this.swipeState.maxSwipe - 20);
+                inner.style.transform = `translateX(${moveX}px)`;
+                if (Math.abs(diffX) > 10) isSwiping = true;
+            } else if (inner.style.transform && inner.style.transform !== 'translateX(0px)') {
+                // Allow user to swipe back right
+                const moveX = Math.min(0, diffX + this.swipeState.maxSwipe);
+                inner.style.transform = `translateX(${moveX}px)`;
+                if (Math.abs(diffX) > 10) isSwiping = true;
+            }
+        }, { passive: true });
+
+        el.addEventListener('touchend', (e) => {
+            el.classList.remove('swiping');
+            const diffX = e.changedTouches[0].clientX - this.swipeState.startX;
+            const duration = Date.now() - this.swipeState.startTime;
+
+            // If it was a quick flick or a long enough swipe
+            if (diffX < -this.swipeState.threshold || (diffX < -20 && duration < 250)) {
+                this.openSwipe(el);
+            } else {
+                this.closeSwipe(el);
+            }
+
+            // Prevent click if swipe was significant
+            if (isSwiping) {
+                el.style.pointerEvents = 'none';
+                setTimeout(() => el.style.pointerEvents = '', 100);
+            }
+        });
+    },
+
+    openSwipe(el) {
+        const inner = el.querySelector('.schedule-item-inner');
+        inner.style.transform = `translateX(${this.swipeState.maxSwipe}px)`;
+        this.swipeState.activeElement = el;
+    },
+
+    closeSwipe(el) {
+        const inner = el.querySelector('.schedule-item-inner');
+        inner.style.transform = 'translateX(0px)';
+        if (this.swipeState.activeElement === el) {
+            this.swipeState.activeElement = null;
+        }
+    },
+
+    handleDelete(id) {
+        if (confirm('この予定を削除しますか？')) {
+            Storage.delete(id);
+            // Notification is handled by Storage listener which calls UI.render()
+        } else {
+            if (this.swipeState.activeElement) {
+                this.closeSwipe(this.swipeState.activeElement);
+            }
+        }
+    },
+
     render() {
         let schedules = Storage.getAll();
 
@@ -32,19 +118,14 @@ export const UI = {
             schedules = schedules.filter(s => (s.category || 'その他') === this.currentCategory);
         }
 
-        // Use inline date formatting to ensure latest logic is applied regardless of utils.js cache
         const d = new Date();
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
         const today = `${year}-${month}-${day}`;
 
-        console.log('Filtering schedules. Today:', today);
-
-        // Filter out past schedules (keep today and future)
         schedules = schedules.filter(s => s.date && s.date >= today);
 
-        // Sort by date (ascending)
         schedules.sort((a, b) => {
             if (a.date !== b.date) return a.date.localeCompare(b.date);
             return (a.startTime || '').localeCompare(b.startTime || '');
@@ -80,8 +161,7 @@ export const UI = {
 
             const el = document.createElement('div');
             el.className = 'schedule-item';
-            el.dataset.id = schedule.id; // For click event
-            el.onclick = () => window.openEditModal(schedule.id);
+            el.dataset.id = schedule.id;
 
             let timeStr = '終日';
             if (schedule.startTime && schedule.endTime) {
@@ -96,11 +176,37 @@ export const UI = {
             const categoryClass = `category-badge category-${category}`;
 
             el.innerHTML = `
-                <div class="schedule-time">${timeStr}</div>
-                <div class="schedule-title">${escapeHtml(schedule.title)}</div>
-                <div class="${categoryClass}">${escapeHtml(category)}</div>
-                ${schedule.description ? `<div class="schedule-desc">${escapeHtml(schedule.description)}</div>` : ''}
+                <div class="schedule-item-actions">
+                    <button type="button" class="btn-swipe-delete" aria-label="削除">
+                        <span>削除</span>
+                    </button>
+                </div>
+                <div class="schedule-item-inner">
+                    <div class="schedule-time">${timeStr}</div>
+                    <div class="schedule-title">${escapeHtml(schedule.title)}</div>
+                    <div class="${categoryClass}">${escapeHtml(category)}</div>
+                    ${schedule.description ? `<div class="schedule-desc">${escapeHtml(schedule.description)}</div>` : ''}
+                </div>
             `;
+
+            // Setup events
+            const inner = el.querySelector('.schedule-item-inner');
+            inner.onclick = (e) => {
+                if (this.swipeState.activeElement) {
+                    this.closeSwipe(this.swipeState.activeElement);
+                    e.stopPropagation();
+                    return;
+                }
+                window.openEditModal(schedule.id);
+            };
+
+            const delBtn = el.querySelector('.btn-swipe-delete');
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.handleDelete(schedule.id);
+            };
+
+            this.initSwipe(el);
             this.listElement.appendChild(el);
         });
     }
