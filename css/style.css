@@ -323,8 +323,8 @@ body {
     justify-content: flex-end;
     align-items: center;
     z-index: 1;
-    background: #f1f5f9;
-    /* Match body background for a clean look */
+    background: var(--bg-surface);
+    /* Keep it same as card background to avoid red border */
 }
 
 .btn-swipe-delete {
