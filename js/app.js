@@ -45,9 +45,22 @@ document.addEventListener('DOMContentLoaded', () => {
     Calendar.init();
     Settings.init();
 
+    // Restore missing initializations
+    Finance.init(() => {
+        if (window.renderFinanceView) window.renderFinanceView();
+    });
+    Kakeibo.init(() => {
+        if (window.renderKakeiboView) window.renderKakeiboView();
+    });
+    Bookkeeping.init(() => {
+        if (window.renderBookkeepingView) window.renderBookkeepingView();
+    });
+    Notes.init(() => {
+        if (window.renderNotesView) window.renderNotesView();
+    });
+
     Storage.init(() => {
         UI.render();
-        Calendar.refresh();
         Calendar.refresh();
     });
 
