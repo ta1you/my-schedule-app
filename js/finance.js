@@ -65,6 +65,7 @@ export const Finance = {
         const existing = items.findIndex(i => i.id === item.id);
         if (existing >= 0) items[existing] = item; else items.push(item);
         items.sort((a, b) => new Date(a.date) - new Date(b.date));
+        localStorage.setItem(FINANCE_KEY, JSON.stringify(items));
         this._notifyChange();
 
         // Cloud update
@@ -77,6 +78,7 @@ export const Finance = {
 
     delete(id) {
         items = items.filter(i => i.id !== id);
+        localStorage.setItem(FINANCE_KEY, JSON.stringify(items));
         this._notifyChange();
 
         const uid = Auth.getUserId();

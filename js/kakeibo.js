@@ -51,6 +51,7 @@ export const Kakeibo = {
         const existing = items.findIndex(i => i.id === item.id);
         if (existing >= 0) items[existing] = item; else items.push(item);
         items.sort((a, b) => this._parseDate(b.date) - this._parseDate(a.date));
+        localStorage.setItem(KAKEIBO_KEY, JSON.stringify(items));
         this._notifyChange();
 
         // Cloud update
@@ -63,6 +64,7 @@ export const Kakeibo = {
 
     delete(id) {
         items = items.filter(i => i.id !== id);
+        localStorage.setItem(KAKEIBO_KEY, JSON.stringify(items));
         this._notifyChange();
 
         const uid = Auth.getUserId();

@@ -25,9 +25,9 @@ export class CalendarInstance {
 
     setViewMode(mode, direction = 'horizontal') {
         const oldMode = this.viewMode;
+        if (oldMode === mode) return;
         this.viewMode = mode;
 
-        // When switching, sync currentDate to first day of month if in week view
         if (mode === 'week') {
             if (this.currentDate.getFullYear() !== this.currentYear || this.currentDate.getMonth() !== this.currentMonth) {
                 this.currentDate = new Date(this.currentYear, this.currentMonth, 1);
@@ -35,28 +35,41 @@ export class CalendarInstance {
         }
 
         const slider = this.container.querySelector('.calendar-slider');
-        const panes = this.container.querySelectorAll('.calendar-view-pane');
-
-        if (slider) {
-            if (direction === 'vertical') {
-                slider.classList.add('is-vertical');
-                // Re-render immediately to set up the vertical layout
-                this.render();
-                // Wait a tiny bit for the opacity transition
-                setTimeout(() => {
-                    slider.classList.remove('is-vertical');
-                }, 400);
-            } else {
-                slider.classList.remove('is-vertical');
-                slider.style.transform = mode === 'month' ? 'translateX(0)' : 'translateX(-50%)';
-            }
+        if (!slider) {
+            this.render();
+            return;
         }
 
-        // Update active class on buttons
-        const btns = this.container.querySelectorAll('.view-mode-btn');
-        btns.forEach(btn => {
+        if (direction === 'vertical') {
+            slider.classList.add('is-vertical');
+            // Starting position (assume we were in Month)
+            slider.style.transition = 'none';
+            slider.style.transform = mode === 'week' ? 'translateY(0)' : 'translateY(-50%)';
+
+            // Force reflow
+            slider.offsetHeight;
+
+            slider.style.transition = 'transform 0.5s cubic-bezier(0.19, 1, 0.22, 1)';
+            slider.style.transform = mode === 'week' ? 'translateY(-50%)' : 'translateY(0)';
+
+            setTimeout(() => {
+                // After animation, we might want to stay in vertical layout or revert
+                // For simplicity, let's keep the slider state 
+                // but usually we cleanup.
+            }, 500);
+        } else {
+            slider.classList.remove('is-vertical');
+            slider.style.transition = 'transform 0.4s ease';
+            slider.style.transform = mode === 'month' ? 'translateX(0)' : 'translateX(-50%)';
+        }
+
+        // Update buttons
+        this.container.querySelectorAll('.view-mode-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.mode === mode);
         });
+
+        // Update header label only (don't re-render entire grid during slide)
+        this.updateHeaderLabel();
     }
 
     prev() {
@@ -106,24 +119,11 @@ export class CalendarInstance {
         prevBtn.onclick = () => this.prev();
 
         const label = document.createElement('h2');
-        if (this.viewMode === 'month') {
-            label.textContent = `${this.currentYear}年 ${this.currentMonth + 1}月`;
-        } else {
-            const startOfWeek = new Date(this.currentDate);
-            startOfWeek.setDate(this.currentDate.getDate() - this.currentDate.getDay());
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 6);
-            label.textContent = `${startOfWeek.getMonth() + 1}/${startOfWeek.getDate()} - ${endOfWeek.getMonth() + 1}/${endOfWeek.getDate()}`;
-        }
+        label.id = 'calendar-header-label';
         label.style.margin = '0';
         label.style.fontSize = '1.1rem';
+        this.container.appendChild(controlsDiv); // Need to append early for updateHeaderLabel
 
-        const nextBtn = document.createElement('button');
-        nextBtn.textContent = '>';
-        nextBtn.className = 'btn btn-secondary';
-        nextBtn.onclick = () => this.next();
-
-        // View Mode Selector
         const selector = document.createElement('div');
         selector.className = 'view-mode-selector';
         ['month', 'week'].forEach(m => {
@@ -131,20 +131,25 @@ export class CalendarInstance {
             btn.className = `view-mode-btn ${this.viewMode === m ? 'active' : ''}`;
             btn.textContent = m === 'month' ? '月' : '週';
             btn.dataset.mode = m;
-            btn.onclick = () => this.setViewMode(m);
+            btn.onclick = () => this.setViewMode(m, 'vertical'); // Default to vertical for 'peek' feel if desired
             selector.appendChild(btn);
         });
 
         controlsDiv.appendChild(prevBtn);
         controlsDiv.appendChild(label);
         controlsDiv.appendChild(selector);
+
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = '>';
+        nextBtn.className = 'btn btn-secondary';
+        nextBtn.onclick = () => this.next();
         controlsDiv.appendChild(nextBtn);
-        this.container.appendChild(controlsDiv);
+
+        this.updateHeaderLabel();
 
         // --- Slider Wrapper ---
         const slider = document.createElement('div');
         slider.className = 'calendar-slider';
-        slider.style.transform = this.viewMode === 'month' ? 'translateX(0)' : 'translateX(-50%)';
 
         // Month Pane
         const monthPane = document.createElement('div');
@@ -159,6 +164,24 @@ export class CalendarInstance {
         slider.appendChild(weekPane);
 
         this.container.appendChild(slider);
+
+        // Set initial transform
+        slider.style.transform = this.viewMode === 'month' ? 'translateX(0)' : 'translateX(-50%)';
+    }
+
+    updateHeaderLabel() {
+        const label = document.getElementById('calendar-header-label');
+        if (!label) return;
+
+        if (this.viewMode === 'month') {
+            label.textContent = `${this.currentYear}年 ${this.currentMonth + 1}月`;
+        } else {
+            const startOfWeek = new Date(this.currentDate);
+            startOfWeek.setDate(this.currentDate.getDate() - this.currentDate.getDay());
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            label.textContent = `${startOfWeek.getMonth() + 1}/${startOfWeek.getDate()} - ${endOfWeek.getMonth() + 1}/${endOfWeek.getDate()}`;
+        }
     }
 
     setupTouchEvents() {
