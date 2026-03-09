@@ -143,6 +143,51 @@ export class CalendarInstance {
         slider.appendChild(weekPane);
 
         this.container.appendChild(slider);
+
+        this.setupTouchEvents();
+    }
+
+    setupTouchEvents() {
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartTime = 0;
+
+        this.container.ontouchstart = (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchStartTime = Date.now();
+        };
+
+        this.container.ontouchend = (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+            const dt = Date.now() - touchStartTime;
+
+            // Thresholds
+            const minDistance = 50;
+            const maxTime = 500;
+
+            if (dt < maxTime) {
+                // Horizontal swipe (Left/Right)
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minDistance) {
+                    if (dx < 0) {
+                        // Swipe left -> Next view (Month to Week)
+                        if (this.viewMode === 'month') this.setViewMode('week');
+                    } else {
+                        // Swipe right -> Prev view (Week to Month)
+                        if (this.viewMode === 'week') this.setViewMode('month');
+                    }
+                }
+                // Vertical swipe (Down) - User request: "slide down to week tab"
+                else if (dy > Math.abs(dx) && dy > minDistance) {
+                    if (this.viewMode === 'month') {
+                        this.setViewMode('week');
+                    }
+                }
+            }
+        };
     }
 
     renderMonth(target) {
