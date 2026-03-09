@@ -23,20 +23,35 @@ export class CalendarInstance {
         if (this.container) this.render();
     }
 
-    setViewMode(mode) {
+    setViewMode(mode, direction = 'horizontal') {
+        const oldMode = this.viewMode;
         this.viewMode = mode;
+
         // When switching, sync currentDate to first day of month if in week view
         if (mode === 'week') {
-            // If the month of currentDate doesn't match currentMonth/Year, reset it to first of month
             if (this.currentDate.getFullYear() !== this.currentYear || this.currentDate.getMonth() !== this.currentMonth) {
                 this.currentDate = new Date(this.currentYear, this.currentMonth, 1);
             }
         }
 
         const slider = this.container.querySelector('.calendar-slider');
+        const panes = this.container.querySelectorAll('.calendar-view-pane');
+
         if (slider) {
-            slider.style.transform = mode === 'month' ? 'translateX(0)' : 'translateX(-50%)';
+            if (direction === 'vertical') {
+                slider.classList.add('is-vertical');
+                // Re-render immediately to set up the vertical layout
+                this.render();
+                // Wait a tiny bit for the opacity transition
+                setTimeout(() => {
+                    slider.classList.remove('is-vertical');
+                }, 400);
+            } else {
+                slider.classList.remove('is-vertical');
+                slider.style.transform = mode === 'month' ? 'translateX(0)' : 'translateX(-50%)';
+            }
         }
+
         // Update active class on buttons
         const btns = this.container.querySelectorAll('.view-mode-btn');
         btns.forEach(btn => {
@@ -165,33 +180,29 @@ export class CalendarInstance {
             const dt = Date.now() - touchStartTime;
 
             // Thresholds
-            const minDistance = 40; // Slightly lower for better responsiveness
+            const minDistance = 30; // More sensitive
             const maxTime = 400;
 
             if (dt < maxTime) {
+                // Downward swipe (Vertical)
+                if (dy > minDistance && dy > Math.abs(dx)) {
+                    if (this.viewMode === 'month') {
+                        this.setViewMode('week', 'vertical');
+                        e.preventDefault();
+                    }
+                }
                 // Horizontal swipe
-                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minDistance) {
-                    console.log('Swipe X detected:', dx);
+                else if (Math.abs(dx) > minDistance && Math.abs(dx) > Math.abs(dy)) {
                     if (dx < -minDistance) {
-                        // Swipe left -> Next view (Month to Week)
                         if (this.viewMode === 'month') {
-                            this.setViewMode('week');
+                            this.setViewMode('week', 'horizontal');
                             e.preventDefault();
                         }
                     } else if (dx > minDistance) {
-                        // Swipe right -> Prev view (Week to Month)
                         if (this.viewMode === 'week') {
-                            this.setViewMode('month');
+                            this.setViewMode('month', 'horizontal');
                             e.preventDefault();
                         }
-                    }
-                }
-                // Vertical swipe (Down)
-                else if (dy > Math.abs(dx) && dy > minDistance) {
-                    console.log('Swipe Down detected:', dy);
-                    if (this.viewMode === 'month') {
-                        this.setViewMode('week');
-                        e.preventDefault();
                     }
                 }
             }
