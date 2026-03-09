@@ -14,6 +14,7 @@ export class CalendarInstance {
     init() {
         this.container = document.getElementById(this.containerId);
         if (!this.container) return;
+        this.setupTouchEvents(); // Attach events once
         this.render();
     }
 
@@ -143,8 +144,6 @@ export class CalendarInstance {
         slider.appendChild(weekPane);
 
         this.container.appendChild(slider);
-
-        this.setupTouchEvents();
     }
 
     setupTouchEvents() {
@@ -152,13 +151,13 @@ export class CalendarInstance {
         let touchStartY = 0;
         let touchStartTime = 0;
 
-        this.container.ontouchstart = (e) => {
+        const handleStart = (e) => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
             touchStartTime = Date.now();
         };
 
-        this.container.ontouchend = (e) => {
+        const handleEnd = (e) => {
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
             const dx = touchEndX - touchStartX;
@@ -166,28 +165,41 @@ export class CalendarInstance {
             const dt = Date.now() - touchStartTime;
 
             // Thresholds
-            const minDistance = 50;
-            const maxTime = 500;
+            const minDistance = 40; // Slightly lower for better responsiveness
+            const maxTime = 400;
 
             if (dt < maxTime) {
-                // Horizontal swipe (Left/Right)
+                // Horizontal swipe
                 if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minDistance) {
-                    if (dx < 0) {
+                    console.log('Swipe X detected:', dx);
+                    if (dx < -minDistance) {
                         // Swipe left -> Next view (Month to Week)
-                        if (this.viewMode === 'month') this.setViewMode('week');
-                    } else {
+                        if (this.viewMode === 'month') {
+                            this.setViewMode('week');
+                            e.preventDefault();
+                        }
+                    } else if (dx > minDistance) {
                         // Swipe right -> Prev view (Week to Month)
-                        if (this.viewMode === 'week') this.setViewMode('month');
+                        if (this.viewMode === 'week') {
+                            this.setViewMode('month');
+                            e.preventDefault();
+                        }
                     }
                 }
-                // Vertical swipe (Down) - User request: "slide down to week tab"
+                // Vertical swipe (Down)
                 else if (dy > Math.abs(dx) && dy > minDistance) {
+                    console.log('Swipe Down detected:', dy);
                     if (this.viewMode === 'month') {
                         this.setViewMode('week');
+                        e.preventDefault();
                     }
                 }
             }
         };
+
+        // Add to the container once in init
+        this.container.addEventListener('touchstart', handleStart, { passive: true });
+        this.container.addEventListener('touchend', handleEnd, { passive: false });
     }
 
     renderMonth(target) {
