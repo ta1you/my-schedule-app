@@ -26,10 +26,19 @@ export const Kakeibo = {
         collectionRef.onSnapshot((snapshot) => {
             const remoteItems = [];
             snapshot.forEach(doc => remoteItems.push(doc.data()));
-            items = remoteItems;
-            items.sort((a, b) => new Date(b.date) - new Date(a.date)); // Descending for list
-            localStorage.setItem(KAKEIBO_KEY, JSON.stringify(items));
-            this._notifyChange();
+
+            // Prevent overwriting local data with empty remote data if local has content
+            if (remoteItems.length === 0 && items.length > 0) {
+                console.log('Migrating local kakeibo data to cloud...');
+                items.forEach(it => {
+                    collectionRef.doc(it.id).set(it);
+                });
+            } else {
+                items = remoteItems;
+                items.sort((a, b) => this._parseDate(b.date) - this._parseDate(a.date)); // Descending for list
+                localStorage.setItem(KAKEIBO_KEY, JSON.stringify(items));
+                this._notifyChange();
+            }
         });
     },
 
@@ -41,7 +50,7 @@ export const Kakeibo = {
         // Local update
         const existing = items.findIndex(i => i.id === item.id);
         if (existing >= 0) items[existing] = item; else items.push(item);
-        items.sort((a, b) => new Date(b.date) - new Date(a.date));
+        items.sort((a, b) => this._parseDate(b.date) - this._parseDate(a.date));
         this._notifyChange();
 
         // Cloud update
@@ -68,7 +77,7 @@ export const Kakeibo = {
 
     getMonthlyEntries(year, month) {
         return items.filter(it => {
-            const d = new Date(it.date);
+            const d = this._parseDate(it.date);
             return d.getFullYear() === year && d.getMonth() === month;
         });
     },
@@ -81,7 +90,7 @@ export const Kakeibo = {
         const categoryTotals = {};
 
         items.forEach(it => {
-            const d = new Date(it.date);
+            const d = this._parseDate(it.date);
             if (d.getFullYear() === year && d.getMonth() === month) {
                 const dayIndex = d.getDate() - 1;
                 const amt = Number(it.amount);
@@ -108,7 +117,7 @@ export const Kakeibo = {
 
         let weeklyTotal = 0;
         items.forEach(it => {
-            const d = new Date(it.date);
+            const d = this._parseDate(it.date);
             if (d >= oneWeekAgo && d <= now && it.type === 'expense') {
                 weeklyTotal += Number(it.amount);
             }
@@ -295,5 +304,12 @@ export const Kakeibo = {
     _updateLegend(totalIncome, totalExpense) {
         // Deprecated in favor of _updateDashboard but kept for compatibility
         this._updateDashboard(totalIncome, totalExpense);
+    },
+
+    // Robust date parsing helper to treat YYYY-MM-DD as local time
+    _parseDate(dateStr) {
+        if (!dateStr) return new Date();
+        const [y, m, d] = dateStr.split('-').map(Number);
+        return new Date(y, m - 1, d);
     }
 };

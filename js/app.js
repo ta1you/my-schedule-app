@@ -1,12 +1,14 @@
 import { Storage } from './storage.js';
 import { UI } from './ui.js';
 import { generateId, getTodayString } from './utils.js';
-import { Calendar } from './calendar.js';
+import { Calendar, CalendarInstance } from './calendar.js';
 import { Finance } from './finance.js';
 import { Kakeibo } from './kakeibo.js';
 import { Bookkeeping } from './bookkeeping.js';
 import { Notes } from './notes.js';
 import { Settings } from './settings.js';
+
+// const CalendarTest = new CalendarInstance('calendar-test-view'); // Removed
 
 
 // Register Service Worker
@@ -43,6 +45,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
     UI.init();
     Calendar.init();
+    // CalendarTest.init(); // Removed
     Settings.init();
 
     // Restore missing initializations
@@ -97,12 +100,14 @@ function setupEventListeners() {
     const btnFinance = document.getElementById('btn-finance');
     const btnKakeibo = document.getElementById('btn-kakeibo'); // New button
     const btnBookkeeping = document.getElementById('btn-bookkeeping');
+    // const btnCalendarTest = document.getElementById('btn-view-calendar-test'); // Removed
     const btnSettings = document.getElementById('btn-settings');
     const listView = document.getElementById('schedule-list');
     const calendarView = document.getElementById('calendar-view');
     const financeView = document.getElementById('finance-view');
     const kakeiboView = document.getElementById('kakeibo-view'); // New view
     const bookkeepingView = document.getElementById('bookkeeping-view');
+    // const calendarTestView = document.getElementById('calendar-test-view'); // Removed
     const settingsView = document.getElementById('settings-view');
 
     // Helper to set view state; uses both attribute and fallback class for robustness
@@ -116,6 +121,7 @@ function setupEventListeners() {
         if (financeView) financeView.hidden = true;
         if (kakeiboView) kakeiboView.hidden = true;
         if (bookkeepingView) bookkeepingView.hidden = true;
+        // if (calendarTestView) calendarTestView.hidden = true; // Removed
         const notesView = document.getElementById('notes-view');
         if (notesView) notesView.hidden = true;
         if (settingsView) settingsView.hidden = true;
@@ -130,6 +136,7 @@ function setupEventListeners() {
         if (btnFinance) btnFinance.classList.remove('active');
         if (btnKakeibo) btnKakeibo.classList.remove('active');
         if (btnBookkeeping) btnBookkeeping.classList.remove('active');
+        // if (btnCalendarTest) btnCalendarTest.classList.remove('active'); // Removed
         const btnNotes = document.getElementById('btn-notes');
         if (btnNotes) btnNotes.classList.remove('active');
         if (btnSettings) btnSettings.classList.remove('active');
@@ -157,6 +164,10 @@ function setupEventListeners() {
 
             btnCalendar.classList.add('active');
 
+            if (categoryTabs) {
+                categoryTabs.hidden = true;
+                categoryTabs.style.display = 'none';
+            }
             if (categoryTabs) {
                 categoryTabs.hidden = true;
                 categoryTabs.style.display = 'none';
@@ -226,6 +237,7 @@ function setupEventListeners() {
     if (btnFinance) btnFinance.addEventListener('click', () => setView('finance'));
     if (btnKakeibo) btnKakeibo.addEventListener('click', () => setView('kakeibo'));
     if (btnBookkeeping) btnBookkeeping.addEventListener('click', () => setView('bookkeeping'));
+    // if (btnCalendarTest) btnCalendarTest.addEventListener('click', () => setView('calendar-test')); // Removed
     const btnNotes = document.getElementById('btn-notes');
     if (btnNotes) btnNotes.addEventListener('click', () => setView('notes'));
     if (btnSettings) btnSettings.addEventListener('click', () => setView('settings'));
@@ -730,7 +742,8 @@ function setupKakeiboInteractions() {
         } else {
             items.sort((a, b) => new Date(b.date) - new Date(a.date));
             const entriesHtml = items.map(it => {
-                const day = new Date(it.date).getDate();
+                const [y, m, d] = it.date.split('-').map(Number);
+                const day = d;
                 const isIncome = it.type === 'income';
                 return `
                     <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border-radius:8px; margin-bottom:8px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">

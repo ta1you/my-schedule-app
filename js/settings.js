@@ -78,6 +78,7 @@ export const Settings = {
         if (btnFinance) btnFinance.style.display = this.prefs.showFinance ? '' : 'none';
         if (btnKakeibo) btnKakeibo.style.display = this.prefs.showKakeibo ? '' : 'none';
         if (btnBookkeeping) btnBookkeeping.style.display = this.prefs.showBookkeeping ? '' : 'none';
+
         const btnNotes = document.getElementById('btn-notes');
         if (btnNotes) btnNotes.style.display = this.prefs.showNotes ? '' : 'none';
     },

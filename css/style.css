@@ -446,6 +446,174 @@ body {
     box-shadow: var(--shadow-md);
     padding: var(--space-md);
     border: 1px solid var(--border-light);
+    overflow: hidden;
+    position: relative;
+}
+
+.calendar-slider {
+    display: flex;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 200%;
+}
+
+.calendar-view-pane {
+    flex: 0 0 50%;
+    width: 100%;
+}
+
+/* Weekly Vertical Grid */
+.weekly-vertical-container {
+    padding-top: 10px;
+}
+
+.weekly-grid {
+    display: grid;
+    grid-template-columns: 50px repeat(7, 1fr);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    position: relative;
+    overflow-x: auto;
+}
+
+.weekly-time-col {
+    background: #f8fafc;
+    border-right: 1px solid var(--border-light);
+}
+
+.weekly-hour-cell {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.weekly-day-col {
+    position: relative;
+    border-right: 1px solid #f1f5f9;
+    min-width: 0;
+}
+
+.weekly-day-header {
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--border-light);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.weekly-day-header .day-name {
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.weekly-day-header .day-num {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.weekly-grid-body {
+    position: relative;
+    height: 1140px;
+    /* 19 hours (5:00 to 24:00) * 60px */
+}
+
+/* Grid lines for hours */
+.weekly-grid-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.weekly-grid-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    border-top: 1px solid #f1f5f9;
+}
+
+.weekly-event-block {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 0.7rem;
+    color: white;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    z-index: 5;
+    cursor: grab;
+    border-left: 3px solid rgba(0, 0, 0, 0.2);
+    touch-action: none;
+    /* Prevent scrolling while dragging */
+    user-select: none;
+}
+
+.weekly-event-block:active {
+    cursor: grabbing;
+}
+
+.weekly-event-block.dragging {
+    opacity: 0.8;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    cursor: grabbing;
+}
+
+.weekly-event-block .event-time {
+    font-weight: 700;
+    font-size: 0.6rem;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.weekly-event-block.type-バイト {
+    background: #3b82f6;
+}
+
+.weekly-event-block.type-学校 {
+    background: #22c55e;
+}
+
+.weekly-event-block.type-その他 {
+    background: #a855f7;
+}
+
+/* Control adjustments */
+.view-mode-selector {
+    display: flex;
+    background: #f1f5f9;
+    padding: 2px;
+    border-radius: 8px;
+    margin-left: 10px;
+}
+
+.view-mode-btn {
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.view-mode-btn.active {
+    background: white;
+    color: var(--primary-dark);
+    box-shadow: var(--shadow-sm);
 }
 
 .month-days-grid {
