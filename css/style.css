@@ -968,7 +968,11 @@ select:focus {
     top: 0;
     bottom: 0;
     display: flex;
-    z-index: 1; /* Behind the inner content */
+    z-index: 1; /* Behind by default */
+}
+
+.schedule-item.swipe-open .schedule-item-actions {
+    z-index: 10; /* Bring to front when swiped */
 }
 
 .schedule-item-actions.left-actions {
@@ -991,6 +995,7 @@ select:focus {
     color: white;
     cursor: pointer;
     transition: opacity 0.2s;
+    z-index: 5; /* Ensure it's above the background but below inner when not swiped? No, keep it high when visible */
 }
 
 .btn-swipe-delete {

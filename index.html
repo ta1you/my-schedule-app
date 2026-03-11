@@ -265,26 +265,19 @@
             </div>
 
 
+            <!-- Main Settings View -->
             <div id="settings-view" class="settings-view" hidden style="width: 100%; padding: 1rem; background: #f8fafc; min-height: 100%;">
                 <h2 style="margin: 1rem 0 1.5rem 0.5rem; font-size: 1.8rem; font-weight: 800; color: #1e293b;">設定</h2>
                 
                 <div class="settings-section-header">アプリ内設定</div>
                 <div class="settings-list-group">
-                    <div class="settings-list-item">
+                    <div class="settings-list-item" onclick="Settings.showCalendarSubSettings(true)" style="cursor: pointer;">
                         <div class="settings-icon-box" style="background: #e0f2fe; color: #0284c7;">📅</div>
                         <div class="settings-item-content">
-                            <span class="settings-item-title">カレンダー表示時間 (開始)</span>
+                            <span class="settings-item-title">カレンダー</span>
+                            <span class="settings-item-subtitle">表示時間などの詳細設定</span>
                         </div>
-                        <input type="number" id="setting-calendar-start" class="settings-input-inline" min="0" max="23" value="5">
-                        <span style="font-size: 0.8rem; margin-left: 4px;">時</span>
-                    </div>
-                    <div class="settings-list-item">
-                        <div class="settings-icon-box" style="background: #e0f2fe; color: #0284c7;">⏰</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title">カレンダー表示時間 (終了)</span>
-                        </div>
-                        <input type="number" id="setting-calendar-end" class="settings-input-inline" min="0" max="24" value="24">
-                        <span style="font-size: 0.8rem; margin-left: 4px;">時</span>
+                        <span class="settings-item-action">❯</span>
                     </div>
                 </div>
 
@@ -300,6 +293,7 @@
                             <span class="slider"></span>
                         </label>
                     </div>
+                    <!-- ... other items ... -->
                     <div class="settings-list-item">
                         <div class="settings-icon-box" style="background: #fefce8; color: #ca8a04;">🏠</div>
                         <div class="settings-item-content">
@@ -335,6 +329,37 @@
                 <div style="text-align: center; margin-top: 2rem; color: #94a3b8; font-size: 0.8rem;">
                     Version 1.0.1
                 </div>
+            </div>
+
+            <!-- Calendar Sub-Settings View -->
+            <div id="settings-calendar-view" class="settings-view" hidden style="width: 100%; padding: 1rem; background: #f8fafc; min-height: 100%;">
+                <div style="display: flex; align-items: center; margin: 1rem 0 1.5rem 0;">
+                    <button onclick="Settings.showCalendarSubSettings(false)" style="background: none; border: none; font-size: 1.5rem; color: #0284c7; padding: 0.5rem; cursor: pointer;">❮</button>
+                    <h2 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #1e293b; flex: 1; text-align: center; margin-right: 2.5rem;">カレンダー設定</h2>
+                </div>
+
+                <div class="settings-section-header">表示時間設定</div>
+                <div class="settings-list-group">
+                    <div class="settings-list-item">
+                        <div class="settings-icon-box" style="background: #e0f2fe; color: #0284c7;">🌅</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title">開始時間</span>
+                        </div>
+                        <input type="number" id="setting-calendar-start" class="settings-input-inline" min="0" max="23" value="5">
+                        <span style="font-size: 0.8rem; margin-left: 4px;">時</span>
+                    </div>
+                    <div class="settings-list-item">
+                        <div class="settings-icon-box" style="background: #e0f2fe; color: #0284c7;">🌃</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title">終了時間</span>
+                        </div>
+                        <input type="number" id="setting-calendar-end" class="settings-input-inline" min="0" max="24" value="24">
+                        <span style="font-size: 0.8rem; margin-left: 4px;">時</span>
+                    </div>
+                </div>
+                <p style="padding: 0 1rem; font-size: 0.85rem; color: #64748b; line-height: 1.4;">
+                    ※設定した時間外の予定は表示されませんのでご注意ください。
+                </p>
             </div>
         </main>
         <button id="fab-add" class="fab" aria-label="予定を追加">

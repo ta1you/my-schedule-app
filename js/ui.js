@@ -81,12 +81,14 @@ export const UI = {
         const inner = el.querySelector('.schedule-item-inner');
         const moveX = direction === 'left' ? this.swipeState.maxSwipeLeft : this.swipeState.maxSwipeRight;
         inner.style.transform = `translateX(${moveX}px)`;
+        el.classList.add('swipe-open');
         this.swipeState.activeElement = el;
     },
 
     closeSwipe(el) {
         const inner = el.querySelector('.schedule-item-inner');
-        inner.style.transform = 'translateX(0px)';
+        if (inner) inner.style.transform = 'translateX(0)';
+        el.classList.remove('swipe-open');
         if (this.swipeState.activeElement === el) {
             this.swipeState.activeElement = null;
         }
@@ -206,10 +208,13 @@ export const UI = {
             };
 
             const editBtn = el.querySelector('.btn-swipe-edit');
-            editBtn.onclick = (e) => {
+            const handleEditClick = (e) => {
+                e.preventDefault();
                 e.stopPropagation();
-                this.handleEdit(schedule.id);
+                this.handleEdit(sid);
             };
+            editBtn.onclick = handleEditClick;
+            editBtn.onpointerdown = handleEditClick;
 
             this.initSwipe(el);
             this.listElement.appendChild(el);

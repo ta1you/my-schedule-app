@@ -17,9 +17,22 @@ export const Settings = {
     // Initialize settings
     init() {
         this.load();
+        this.updateUI();
         this.setupEventListeners();
         this.apply();
         console.log('Settings initialized');
+    },
+
+    showCalendarSubSettings(show) {
+        const mainView = document.getElementById('settings-view');
+        const calView = document.getElementById('settings-calendar-view');
+        if (show) {
+            mainView.hidden = true;
+            calView.hidden = false;
+        } else {
+            mainView.hidden = false;
+            calView.hidden = true;
+        }
     },
 
     // Load preferences from localStorage
@@ -39,9 +52,6 @@ export const Settings = {
         // List and Calendar are now mandatory
         this.prefs.showList = true;
         this.prefs.showCalendar = true;
-
-        // Update UI logic
-        this.updateUI();
     },
 
     // Save preferences to localStorage
