@@ -878,10 +878,8 @@ select:focus {
     -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid var(--border-light);
     display: flex;
-    justify-content: flex-start;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    justify-content: space-around; /* Even distribution */
+    overflow: hidden; /* No scrolling */
     z-index: 9999;
     box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -892,7 +890,8 @@ select:focus {
 }
 
 .nav-item {
-    flex: 0 0 75px;
+    flex: 1; /* Take up equal space */
+    min-width: 0;
     background: transparent;
     border: none;
     display: flex;
@@ -902,7 +901,7 @@ select:focus {
     gap: 2px;
     color: var(--text-tertiary);
     font-size: 0.7rem;
-    padding: 6px 0;
+    padding: 8px 0;
     border-radius: 0;
     transition: all 0.2s ease;
     cursor: pointer;
