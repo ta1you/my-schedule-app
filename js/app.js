@@ -335,10 +335,9 @@ function setupEventListeners() {
     fab.addEventListener('click', () => {
         form.reset();
         document.getElementById('date').value = getTodayString();
-        form.id.value = '';
+        form.elements['id'].value = '';
         document.getElementById('modal-title').textContent = '予定を追加';
         deleteBtn.hidden = true;
-        // Reset category to default
         selectedCategory = 'その他';
         modal.showModal();
     });
@@ -352,8 +351,9 @@ function setupEventListeners() {
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         const formData = new FormData(form);
+        const scheduleId = formData.get('id') || generateId();
         const schedule = {
-            id: formData.get('id') || generateId(),
+            id: scheduleId,
             title: formData.get('title'),
             date: formData.get('date'),
             startTime: formData.get('start-time'),
@@ -385,19 +385,23 @@ function setupEventListeners() {
         const schedule = Storage.getById(id);
         if (!schedule) return;
 
-        form.id.value = schedule.id;
-        document.getElementById('title').value = schedule.title;
-        document.getElementById('date').value = schedule.date;
-        document.getElementById('start-time').value = schedule.startTime;
-        document.getElementById('end-time').value = schedule.endTime;
-        document.getElementById('description').value = schedule.description;
+        form.elements['id'].value = schedule.id;
+        document.getElementById('title').value = schedule.title || '';
+        document.getElementById('date').value = schedule.date || getTodayString();
+        document.getElementById('start-time').value = schedule.startTime || '';
+        document.getElementById('end-time').value = schedule.endTime || '';
+        document.getElementById('description').value = schedule.description || '';
 
         // Set category
         selectedCategory = schedule.category || 'その他';
 
         document.getElementById('modal-title').textContent = '予定を編集';
         deleteBtn.hidden = false;
-        modal.showModal();
+        if (modal.showModal) {
+            modal.showModal();
+        } else {
+            modal.setAttribute('open', ''); // Fallback for some environments
+        }
     };
 
     // Finance interactions: tooltip, mode toggle, entries list

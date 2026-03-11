@@ -286,12 +286,15 @@ export class CalendarInstance {
             }
 
             cell.onclick = () => {
-                const modal = document.getElementById('schedule-modal');
-                const form = document.getElementById('schedule-form');
-                form.reset();
-                form.id.value = '';
-                document.getElementById('date').value = dateStr;
-                modal.showModal();
+                if (window.openEditModal) {
+                    // We don't have an ID for new items, so we might need a generic open modal
+                    // In app.js, fab.click() handles new. Let's just trigger fab for now or use window.openAddModal if defined.
+                    const fab = document.getElementById('fab-add');
+                    if (fab) {
+                        fab.click();
+                        document.getElementById('date').value = dateStr;
+                    }
+                }
             };
             daysGrid.appendChild(cell);
         }

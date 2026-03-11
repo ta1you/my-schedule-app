@@ -76,7 +76,7 @@ export const UI = {
 
             if (isSwiping) {
                 el.style.pointerEvents = 'none';
-                setTimeout(() => el.style.pointerEvents = '', 100);
+                setTimeout(() => el.style.pointerEvents = '', 150);
             }
         });
     },
@@ -105,7 +105,8 @@ export const UI = {
     },
 
     handleEdit(id) {
-        window.openEditModal(id);
+        if (!id) return;
+        if (window.openEditModal) window.openEditModal(id);
         this.closeAllSwipes();
     },
 

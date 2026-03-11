@@ -1112,9 +1112,90 @@ select:focus {
 }
 
 .event-dot {
-    font-size: 0.6rem;
-    padding: 1px 3px;
-    line-height: 1.2;
+    font-size: 0.65rem;
+    padding: 2px 4px;
+    margin-bottom: 2px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: white;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.event-dot:hover {
+    opacity: 0.8;
+}
+
+/* Category Colors */
+.category-勉強,
+.type-勉強 {
+    background-color: #3b82f6 !important;
+}
+
+/* Blue */
+.category-バイト,
+.type-バイト {
+    background-color: #ef4444 !important;
+}
+
+/* Red */
+.category-学校,
+.type-学校 {
+    background-color: #10b981 !important;
+}
+
+/* Green */
+.category-遊び,
+.type-遊び {
+    background-color: #f59e0b !important;
+}
+
+/* Orange */
+.category-予定,
+.type-予定 {
+    background-color: #8b5cf6 !important;
+}
+
+/* Purple */
+.category-その他,
+.type-その他 {
+    background-color: #64748b !important;
+}
+
+/* Slate */
+
+/* Weekly Event Blocks */
+.weekly-event-block {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    padding: 4px;
+    border-radius: 6px;
+    color: white;
+    font-size: 0.75rem;
+    overflow: hidden;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    border-left: 3px solid rgba(0, 0, 0, 0.1);
+    transition: transform 0.1s;
+}
+
+.weekly-event-block.dragging {
+    opacity: 0.7;
+    z-index: 100;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    transform: scale(1.02);
+}
+
+.weekly-event-block .event-time {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: bold;
+    opacity: 0.9;
+    margin-bottom: 2px;
 }
 
 /* Modal Mobile */
