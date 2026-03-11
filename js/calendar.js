@@ -287,10 +287,13 @@ export class CalendarInstance {
         const grid = document.createElement('div');
         grid.className = 'weekly-grid';
 
+        const startH = this.getStartHour();
+        const endH = this.getEndHour();
+
         // Time column
         const timeCol = document.createElement('div');
         timeCol.className = 'weekly-time-col';
-        for (let h = 5; h <= 24; h++) {
+        for (let h = startH; h <= endH; h++) {
             const cell = document.createElement('div');
             cell.className = 'weekly-hour-cell';
             cell.textContent = `${h}:00`;
@@ -322,7 +325,8 @@ export class CalendarInstance {
             // Grid lines
             const lines = document.createElement('div');
             lines.className = 'weekly-grid-lines';
-            for (let h = 0; h <= 19; h++) {
+            const numHours = endH - startH;
+            for (let h = 0; h <= numHours; h++) {
                 const line = document.createElement('div');
                 line.className = 'weekly-grid-line';
                 line.style.top = `${h * 60}px`;
@@ -334,8 +338,8 @@ export class CalendarInstance {
             const daySchedules = schedules.filter(s => s.date === dateStr && s.startTime);
             daySchedules.forEach(s => {
                 const [h, m] = s.startTime.split(':').map(Number);
-                if (h >= 5 && h < 24) {
-                    const top = (h - 5) * 60 + (m / 60) * 60;
+                if (h >= startH && h < endH) {
+                    const top = (h - startH) * 60 + (m / 60) * 60;
                     const block = document.createElement('div');
                     block.className = `weekly-event-block type-${s.category || 'その他'}`;
                     block.style.top = `${top}px`;
@@ -385,8 +389,12 @@ export class CalendarInstance {
             const dy = e.clientY - startY;
             let newTop = startTop + dy;
 
-            // Constrain 5:00 - 24:00
-            newTop = Math.max(0, Math.min(newTop, 19 * 60)); // Max 24:00
+            const startH = this.getStartHour();
+            const endH = this.getEndHour();
+            const numHours = endH - startH;
+
+            // Constrain
+            newTop = Math.max(0, Math.min(newTop, numHours * 60)); 
 
             // Snap to 15 mins (15px)
             newTop = Math.round(newTop / 15) * 15;
@@ -394,7 +402,7 @@ export class CalendarInstance {
             block.style.top = `${newTop}px`;
 
             // Update temporary time display
-            let hours = Math.floor(newTop / 60) + 5;
+            let hours = Math.floor(newTop / 60) + startH;
             const mins = (newTop % 60);
             const timeStr = `${hours}:${mins.toString().padStart(2, '0')}`;
             const timeLabel = block.querySelector('.event-time');
@@ -409,8 +417,9 @@ export class CalendarInstance {
             const finalTop = parseFloat(block.style.top);
             if (finalTop === startTop) return; // No change
 
+            const startH = this.getStartHour();
             // Calculate new times
-            let hours = Math.floor(finalTop / 60) + 5;
+            let hours = Math.floor(finalTop / 60) + startH;
             const mins = (finalTop % 60);
             const newStartTime = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 

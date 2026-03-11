@@ -963,26 +963,20 @@ select:focus {
     animation: slideUp 0.3s ease-out backwards;
 }
 
-.schedule-item-inner {
-    position: relative;
-    z-index: 2;
-    padding: var(--space-md);
-    background: white;
-    transition: transform 0.2s ease;
-}
-
 .schedule-item-actions {
     position: absolute;
     top: 0;
-    right: 0;
     bottom: 0;
     display: flex;
-    z-index: 1;
+    z-index: 1; /* Behind the inner content */
 }
 
 .schedule-item-actions.left-actions {
     left: 0;
-    right: auto;
+}
+
+.schedule-item-actions:not(.left-actions) {
+    right: 0;
 }
 
 .btn-swipe-delete,
@@ -992,6 +986,7 @@ select:focus {
     align-items: center;
     justify-content: center;
     width: 80px;
+    height: 100%;
     border: none;
     color: white;
     cursor: pointer;
@@ -1023,7 +1018,82 @@ select:focus {
     animation-delay: 0.15s;
 }
 
-/* Finance View */
+/* Modern Settings UI */
+.settings-list-group {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.settings-list-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    background: white;
+    min-height: 56px;
+    transition: background 0.2s;
+}
+
+.settings-list-item:active {
+    background: #f8fafc;
+}
+
+.settings-list-item:last-child {
+    border-bottom: none;
+}
+
+.settings-icon-box {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 1.1rem;
+}
+
+.settings-item-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-item-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.settings-item-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.settings-item-action {
+    margin-left: 8px;
+    color: #cbd5e1;
+}
+
+.settings-section-header {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0 0 8px 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.settings-input-inline {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    width: 60px;
+}
 .finance-view {
     width: 100%;
     max-width: 800px;
