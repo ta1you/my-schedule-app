@@ -8,8 +8,9 @@ export const UI = {
         startX: 0,
         currentX: 0,
         startTime: 0,
-        threshold: 50, // min swipe to show delete
-        maxSwipe: -80  // width of delete button
+        threshold: 50, // min swipe to show delete/edit
+        maxSwipeLeft: -80, // width of delete button
+        maxSwipeRight: 80  // width of edit button
     },
 
     init() {
@@ -22,11 +23,8 @@ export const UI = {
         const tabs = document.querySelectorAll('.tab-btn');
         tabs.forEach(tab => {
             tab.addEventListener('click', (e) => {
-                // Remove active class from all tabs
                 tabs.forEach(t => t.classList.remove('active'));
-                // Add active class to clicked tab
                 e.target.classList.add('active');
-                // Set current category and re-render
                 this.currentCategory = e.target.dataset.category;
                 this.render();
             });
@@ -35,11 +33,9 @@ export const UI = {
 
     initSwipe(el) {
         const inner = el.querySelector('.schedule-item-inner');
-        const id = el.dataset.id;
         let isSwiping = false;
 
         el.addEventListener('touchstart', (e) => {
-            // Close any other open swipe actions
             if (this.swipeState.activeElement && this.swipeState.activeElement !== el) {
                 this.closeSwipe(this.swipeState.activeElement);
             }
@@ -52,18 +48,17 @@ export const UI = {
 
         el.addEventListener('touchmove', (e) => {
             const diffX = e.touches[0].clientX - this.swipeState.startX;
-            // Only allow left swipe
+
+            // Limit swipe distance
+            let moveX = diffX;
             if (diffX < 0) {
-                // Limit swipe distance
-                const moveX = Math.max(diffX, this.swipeState.maxSwipe - 20);
-                inner.style.transform = `translateX(${moveX}px)`;
-                if (Math.abs(diffX) > 10) isSwiping = true;
-            } else if (inner.style.transform && inner.style.transform !== 'translateX(0px)') {
-                // Allow user to swipe back right
-                const moveX = Math.min(0, diffX + this.swipeState.maxSwipe);
-                inner.style.transform = `translateX(${moveX}px)`;
-                if (Math.abs(diffX) > 10) isSwiping = true;
+                moveX = Math.max(diffX, this.swipeState.maxSwipeLeft - 20);
+            } else {
+                moveX = Math.min(diffX, this.swipeState.maxSwipeRight + 20);
             }
+
+            inner.style.transform = `translateX(${moveX}px)`;
+            if (Math.abs(diffX) > 10) isSwiping = true;
         }, { passive: true });
 
         el.addEventListener('touchend', (e) => {
@@ -71,14 +66,14 @@ export const UI = {
             const diffX = e.changedTouches[0].clientX - this.swipeState.startX;
             const duration = Date.now() - this.swipeState.startTime;
 
-            // If it was a quick flick or a long enough swipe
             if (diffX < -this.swipeState.threshold || (diffX < -20 && duration < 250)) {
-                this.openSwipe(el);
+                this.openSwipe(el, 'left');
+            } else if (diffX > this.swipeState.threshold || (diffX > 20 && duration < 250)) {
+                this.openSwipe(el, 'right');
             } else {
                 this.closeSwipe(el);
             }
 
-            // Prevent click if swipe was significant
             if (isSwiping) {
                 el.style.pointerEvents = 'none';
                 setTimeout(() => el.style.pointerEvents = '', 100);
@@ -86,9 +81,10 @@ export const UI = {
         });
     },
 
-    openSwipe(el) {
+    openSwipe(el, direction) {
         const inner = el.querySelector('.schedule-item-inner');
-        inner.style.transform = `translateX(${this.swipeState.maxSwipe}px)`;
+        const moveX = direction === 'left' ? this.swipeState.maxSwipeLeft : this.swipeState.maxSwipeRight;
+        inner.style.transform = `translateX(${moveX}px)`;
         this.swipeState.activeElement = el;
     },
 
@@ -103,11 +99,19 @@ export const UI = {
     handleDelete(id) {
         if (confirm('この予定を削除しますか？')) {
             Storage.delete(id);
-            // Notification is handled by Storage listener which calls UI.render()
         } else {
-            if (this.swipeState.activeElement) {
-                this.closeSwipe(this.swipeState.activeElement);
-            }
+            this.closeAllSwipes();
+        }
+    },
+
+    handleEdit(id) {
+        window.openEditModal(id);
+        this.closeAllSwipes();
+    },
+
+    closeAllSwipes() {
+        if (this.swipeState.activeElement) {
+            this.closeSwipe(this.swipeState.activeElement);
         }
     },
 
@@ -118,12 +122,7 @@ export const UI = {
             schedules = schedules.filter(s => (s.category || 'その他') === this.currentCategory);
         }
 
-        const d = new Date();
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const today = `${year}-${month}-${day}`;
-
+        const today = getTodayString();
         schedules = schedules.filter(s => s.date && s.date >= today);
 
         schedules.sort((a, b) => {
@@ -163,19 +162,19 @@ export const UI = {
             el.className = 'schedule-item';
             el.dataset.id = schedule.id;
 
-            let timeStr = '終日';
-            if (schedule.startTime && schedule.endTime) {
-                timeStr = `${schedule.startTime} 〜 ${schedule.endTime}`;
-            } else if (schedule.startTime) {
-                timeStr = schedule.startTime;
-            } else if (schedule.endTime) {
-                timeStr = schedule.endTime;
-            }
+            let timeStr = schedule.startTime || '終日';
+            if (schedule.startTime && schedule.endTime) timeStr = `${schedule.startTime}〜${schedule.endTime}`;
 
             const category = schedule.category || 'その他';
             const categoryClass = `category-badge category-${category}`;
 
             el.innerHTML = `
+                <div class="schedule-item-actions left-actions">
+                    <button type="button" class="btn-swipe-edit" aria-label="編集">
+                        <span style="font-size: 1.2rem;">✏️</span>
+                        <span style="font-size: 0.7rem;">編集</span>
+                    </button>
+                </div>
                 <div class="schedule-item-actions">
                     <button type="button" class="btn-swipe-delete" aria-label="削除">
                         <span style="font-size: 1.2rem;">🗑️</span>
@@ -205,6 +204,12 @@ export const UI = {
             delBtn.onclick = (e) => {
                 e.stopPropagation();
                 this.handleDelete(schedule.id);
+            };
+
+            const editBtn = el.querySelector('.btn-swipe-edit');
+            editBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.handleEdit(schedule.id);
             };
 
             this.initSwipe(el);

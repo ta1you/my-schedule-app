@@ -864,40 +864,35 @@ select:focus {
     -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid var(--border-light);
     display: flex;
-    justify-content: space-between;
-    /* Distribue space */
-    padding: 0;
-    /* Remove vertical padding to let buttons fill height */
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     z-index: 9999;
-    /* Ensure on top */
     box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
-    padding-bottom: max(0px, env(safe-area-inset-bottom, 20px));
-    /* Handle safe area in container */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-nav::-webkit-scrollbar {
+    display: none;
 }
 
 .nav-item {
-    flex: 1;
-    /* Expand to fill width */
+    flex: 0 0 75px;
     background: transparent;
     border: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    /* Center vertically */
-    gap: 4px;
+    gap: 2px;
     color: var(--text-tertiary);
     font-size: 0.7rem;
-    padding: 12px 0;
-    /* Add padding for height */
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    /* Extra padding for bottom if needed inside button */
+    padding: 6px 0;
     border-radius: 0;
-    /* Remove radius for full tabs */
     transition: all 0.2s ease;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    /* Remove tap highlight on mobile */
 }
 
 .nav-item .nav-icon {
@@ -920,7 +915,8 @@ select:focus {
 
 /* Adjust FAB position */
 .fab {
-    bottom: calc(70px + env(safe-area-inset-bottom, 20px));
+    bottom: calc(90px + env(safe-area-inset-bottom, 20px));
+    z-index: 10001;
 }
 
 /* Animations */
@@ -947,7 +943,62 @@ select:focus {
 }
 
 .schedule-item {
+    position: relative;
+    overflow: hidden;
+    background: #f8fafc;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    margin-bottom: var(--space-md);
+    box-shadow: var(--shadow-sm);
     animation: slideUp 0.3s ease-out backwards;
+}
+
+.schedule-item-inner {
+    position: relative;
+    z-index: 2;
+    padding: var(--space-md);
+    background: white;
+    transition: transform 0.2s ease;
+}
+
+.schedule-item-actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    z-index: 1;
+}
+
+.schedule-item-actions.left-actions {
+    left: 0;
+    right: auto;
+}
+
+.btn-swipe-delete,
+.btn-swipe-edit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-swipe-delete {
+    background: var(--danger-color);
+}
+
+.btn-swipe-edit {
+    background: var(--primary-color);
+}
+
+.btn-swipe-delete:active,
+.btn-swipe-edit:active {
+    opacity: 0.8;
 }
 
 .schedule-item:nth-child(1) {
