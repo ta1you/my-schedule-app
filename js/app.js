@@ -44,6 +44,7 @@ if ('serviceWorker' in navigator) {
 
 document.addEventListener('DOMContentLoaded', () => {
     UI.init();
+    Calendar.init();
     window.Calendar = Calendar;
     Settings.init();
     window.Settings = Settings;

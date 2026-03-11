@@ -121,7 +121,7 @@ export class CalendarInstance {
             btn.className = `view-mode-btn ${this.viewMode === m ? 'active' : ''}`;
             btn.textContent = m === 'month' ? '月' : '週';
             btn.dataset.mode = m;
-            btn.onclick = () => this.setViewMode(m, 'horizontal');
+            btn.onclick = () => this.setViewMode(m);
             selector.appendChild(btn);
         });
 
