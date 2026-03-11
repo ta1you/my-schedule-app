@@ -34,6 +34,10 @@ export const Settings = {
             this.prefs = { ...this.defaults };
         }
 
+        // List and Calendar are now mandatory
+        this.prefs.showList = true;
+        this.prefs.showCalendar = true;
+
         // Update UI logic (checkboxes)
         this.updateUI();
     },
@@ -69,12 +73,9 @@ export const Settings = {
     apply() {
         const btnList = document.getElementById('btn-view-list');
         const btnCalendar = document.getElementById('btn-view-calendar');
-        const btnFinance = document.getElementById('btn-finance');
-        const btnKakeibo = document.getElementById('btn-kakeibo');
-        const btnBookkeeping = document.getElementById('btn-bookkeeping');
-
-        if (btnList) btnList.style.display = this.prefs.showList ? '' : 'none';
-        if (btnCalendar) btnCalendar.style.display = this.prefs.showCalendar ? '' : 'none';
+        // List and Calendar are always shown
+        if (btnList) btnList.style.display = '';
+        if (btnCalendar) btnCalendar.style.display = '';
         if (btnFinance) btnFinance.style.display = this.prefs.showFinance ? '' : 'none';
         if (btnKakeibo) btnKakeibo.style.display = this.prefs.showKakeibo ? '' : 'none';
         if (btnBookkeeping) btnBookkeeping.style.display = this.prefs.showBookkeeping ? '' : 'none';

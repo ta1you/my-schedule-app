@@ -201,15 +201,8 @@ export class CalendarInstance {
             const maxTime = 400;
 
             if (dt < maxTime) {
-                // Downward swipe (Vertical)
-                if (dy > minDistance && dy > Math.abs(dx)) {
-                    if (this.viewMode === 'month') {
-                        this.setViewMode('week', 'vertical');
-                        e.preventDefault();
-                    }
-                }
                 // Horizontal swipe
-                else if (Math.abs(dx) > minDistance && Math.abs(dx) > Math.abs(dy)) {
+                if (Math.abs(dx) > minDistance && Math.abs(dx) > Math.abs(dy)) {
                     if (dx < -minDistance) {
                         if (this.viewMode === 'month') {
                             this.setViewMode('week', 'horizontal');
