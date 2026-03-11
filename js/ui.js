@@ -10,7 +10,7 @@ export const UI = {
         startTime: 0,
         threshold: 50, // min swipe to show delete/edit
         maxSwipeLeft: -80, // width of delete button
-        maxSwipeRight: 80  // width of edit button
+        maxSwipeRight: 0   // disabled
     },
 
     init() {
@@ -68,8 +68,6 @@ export const UI = {
 
             if (diffX < -this.swipeState.threshold || (diffX < -20 && duration < 250)) {
                 this.openSwipe(el, 'left');
-            } else if (diffX > this.swipeState.threshold || (diffX > 20 && duration < 250)) {
-                this.openSwipe(el, 'right');
             } else {
                 this.closeSwipe(el);
             }
@@ -170,12 +168,6 @@ export const UI = {
             const categoryClass = `category-badge category-${category}`;
 
             el.innerHTML = `
-                <div class="schedule-item-actions left-actions">
-                    <button type="button" class="btn-swipe-edit" aria-label="編集">
-                        <span style="font-size: 1.2rem;">✏️</span>
-                        <span style="font-size: 0.7rem;">編集</span>
-                    </button>
-                </div>
                 <div class="schedule-item-actions">
                     <button type="button" class="btn-swipe-delete" aria-label="削除">
                         <span style="font-size: 1.2rem;">🗑️</span>
@@ -206,15 +198,6 @@ export const UI = {
                 e.stopPropagation();
                 this.handleDelete(schedule.id);
             };
-
-            const editBtn = el.querySelector('.btn-swipe-edit');
-            const handleEditClick = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.handleEdit(sid);
-            };
-            editBtn.onclick = handleEditClick;
-            editBtn.onpointerdown = handleEditClick;
 
             this.initSwipe(el);
             this.listElement.appendChild(el);
