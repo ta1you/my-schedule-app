@@ -159,14 +159,16 @@ export const UI = {
                 this.listElement.appendChild(dateHeader);
             }
 
+            const sid = schedule.id; // local copy
             const el = document.createElement('div');
             el.className = 'schedule-item';
-            el.dataset.id = schedule.id;
+            el.dataset.id = sid;
+            const category = schedule.category || 'その他';
+            el.dataset.category = category;
 
             let timeStr = schedule.startTime || '終日';
             if (schedule.startTime && schedule.endTime) timeStr = `${schedule.startTime}〜${schedule.endTime}`;
 
-            const category = schedule.category || 'その他';
             const categoryClass = `category-badge category-${category}`;
 
             el.innerHTML = `

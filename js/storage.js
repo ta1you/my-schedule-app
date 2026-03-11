@@ -36,19 +36,21 @@ export const Storage = {
                 schedules.forEach(item => {
                     collectionRef.doc(item.id).set(item);
                 });
-                // No need to update local 'schedules' here, the snapshot will fire again with the added data
             } else {
                 // Update local cache with remote data
                 schedules = remoteSchedules;
-                // Sort
-                schedules.sort((a, b) => new Date(a.date + 'T' + (a.startTime || '00:00')) - new Date(b.date + 'T' + (b.startTime || '00:00')));
-
-                // Update LocalStorage as backup/cache
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
-
-                this._notifyListeners();
+                this._updateState();
             }
         });
+    },
+
+    _updateState() {
+        // Sort
+        schedules.sort((a, b) => new Date(a.date + 'T' + (a.startTime || '00:00')) - new Date(b.date + 'T' + (b.startTime || '00:00')));
+        // Update LocalStorage
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
+        // Notify listeners
+        this._notifyListeners();
     },
 
     loadFromLocal() {
@@ -73,7 +75,9 @@ export const Storage = {
         } else {
             schedules.push(schedule);
         }
-        this._notifyListeners();
+        
+        // Immediate local persistence
+        this._updateState();
 
         // Sync to Cloud
         const uid = Auth.getUserId();
@@ -86,7 +90,9 @@ export const Storage = {
     delete(id) {
         // Optimistic update
         schedules = schedules.filter(s => s.id !== id);
-        this._notifyListeners();
+        
+        // Immediate local persistence
+        this._updateState();
 
         // Sync to Cloud
         const uid = Auth.getUserId();
