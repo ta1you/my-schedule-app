@@ -1142,12 +1142,12 @@ select:focus {
     opacity: 0.8;
 }
 
-/* Category Colors */
-.category-勉強, .type-勉強 { background-color: #3b82f6 !important; } /* Blue */
-.category-バイト, .type-バイト { background-color: #8b5cf6 !important; } /* Purple (Changed from Red) */
-.category-学校, .type-学校, .category-予定, .type-予定 { background-color: #10b981 !important; } /* Green */
-.category-遊び, .type-遊び { background-color: #f59e0b !important; }
-.category-その他, .type-その他 { background-color: #64748b !important; }
+/* Category Colors - Always white text for visibility on solid backgrounds */
+.category-勉強, .type-勉強 { background-color: #3b82f6 !important; color: #fff !important; } /* Blue */
+.category-バイト, .type-バイト { background-color: #8b5cf6 !important; color: #fff !important; } /* Purple */
+.category-学校, .type-学校, .category-予定, .type-予定 { background-color: #10b981 !important; color: #fff !important; } /* Green */
+.category-遊び, .type-遊び { background-color: #f59e0b !important; color: #fff !important; } /* Orange */
+.category-その他, .type-その他 { background-color: #64748b !important; color: #fff !important; } /* Slate */
 
 /* In list view, add a color bar to the left */
 .schedule-item-inner {

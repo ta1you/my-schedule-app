@@ -76,7 +76,7 @@ export const UI = {
 
             if (isSwiping) {
                 el.style.pointerEvents = 'none';
-                setTimeout(() => el.style.pointerEvents = '', 150);
+                setTimeout(() => el.style.pointerEvents = '', 50);
             }
         });
     },
