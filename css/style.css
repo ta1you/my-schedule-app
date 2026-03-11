@@ -424,6 +424,67 @@ body {
 /* Gray */
 
 /* Calendar View */
+/* Calendar Slider Layout */
+#calendar-view {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+}
+
+.calendar-slider {
+    display: flex;
+    width: 200%;
+    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    will-change: transform;
+}
+
+.calendar-view-pane {
+    width: 50%;
+    flex-shrink: 0;
+}
+
+.calendar-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-light);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.view-mode-selector {
+    display: flex;
+    background: var(--bg-body);
+    padding: 2px;
+    border-radius: var(--radius-md);
+    gap: 2px;
+}
+
+.view-mode-btn {
+    padding: 4px 12px;
+    border: none;
+    background: none;
+    font-size: 0.8rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.view-mode-btn.active {
+    background: var(--bg-surface);
+    color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+    font-weight: bold;
+}
+
+.calendar-header-label {
+    font-weight: bold;
+    color: var(--text-primary);
+}
 .calendar-view {
     width: 100%;
     max-width: 100%;
