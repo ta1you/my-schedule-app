@@ -73,6 +73,10 @@ export const Settings = {
     apply() {
         const btnList = document.getElementById('btn-view-list');
         const btnCalendar = document.getElementById('btn-view-calendar');
+        const btnFinance = document.getElementById('btn-finance');
+        const btnKakeibo = document.getElementById('btn-kakeibo');
+        const btnBookkeeping = document.getElementById('btn-bookkeeping');
+
         // List and Calendar are always shown
         if (btnList) btnList.style.display = '';
         if (btnCalendar) btnCalendar.style.display = '';
