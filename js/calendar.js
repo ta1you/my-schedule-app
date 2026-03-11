@@ -1,5 +1,6 @@
 import { Storage } from './storage.js';
 import { formatDateForInput } from './utils.js';
+import { Settings } from './settings.js';
 
 export class CalendarInstance {
     constructor(containerId) {
@@ -9,6 +10,10 @@ export class CalendarInstance {
         this.currentMonth = new Date().getMonth();
         this.currentDate = new Date(); // Support for specific day in week view
         this.viewMode = 'month'; // 'month' or 'week'
+
+        // Internal preferences (dynamic based on Settings)
+        this.getStartHour = () => Settings.prefs.calendarStart !== undefined ? Settings.prefs.calendarStart : 5;
+        this.getEndHour = () => Settings.prefs.calendarEnd !== undefined ? Settings.prefs.calendarEnd : 24;
     }
 
     init() {

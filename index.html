@@ -265,38 +265,66 @@
             </div>
 
 
-            <div id="settings-view" class="settings-view" hidden style="width: 100%; padding: 0.5rem; margin-top: 0;">
-                <h3 style="margin-top: 0; font-size: 1.25rem; margin-bottom: 0.5rem; padding-left: 0.5rem;">設定</h3>
-                <div class="settings-section"
-                    style="background: var(--bg-surface); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                    <h4 style="font-size: 1rem; margin-bottom: 0.5rem;">タブの表示設定</h4>
-                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
-                        下のメニューに表示するタブを選択できます。
-                    </p>
-                    <!-- Always show List and Calendar, so toggles are removed -->
-                    <div class="toggle-item">
-                        <span class="toggle-label">収支</span>
+            <div id="settings-view" class="settings-view" hidden style="width: 100%; padding: 1rem; background: #f8fafc; min-height: 100%;">
+                <h2 style="margin: 1rem 0 1.5rem 0.5rem; font-size: 1.8rem; font-weight: 800; color: #1e293b;">設定</h2>
+                
+                <div class="settings-section-header">アプリ内設定</div>
+                <div class="settings-list-group">
+                    <div class="settings-list-item">
+                        <div class="settings-icon-box" style="background: #e0f2fe; color: #0284c7;">📅</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title">カレンダー表示時間 (開始)</span>
+                        </div>
+                        <input type="number" id="setting-calendar-start" class="settings-input-inline" min="0" max="23" value="5">
+                        <span style="font-size: 0.8rem; margin-left: 4px;">時</span>
+                    </div>
+                    <div class="settings-list-item">
+                        <div class="settings-icon-box" style="background: #e0f2fe; color: #0284c7;">⏰</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title">カレンダー表示時間 (終了)</span>
+                        </div>
+                        <input type="number" id="setting-calendar-end" class="settings-input-inline" min="0" max="24" value="24">
+                        <span style="font-size: 0.8rem; margin-left: 4px;">時</span>
+                    </div>
+                </div>
+
+                <div class="settings-section-header">表示タブ設定</div>
+                <div class="settings-list-group">
+                    <div class="settings-list-item">
+                        <div class="settings-icon-box" style="background: #f0fdf4; color: #16a34a;">💰</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title">収支</span>
+                        </div>
                         <label class="switch">
                             <input type="checkbox" id="toggle-finance" checked>
                             <span class="slider"></span>
                         </label>
                     </div>
-                    <div class="toggle-item">
-                        <span class="toggle-label">家計簿</span>
+                    <div class="settings-list-item">
+                        <div class="settings-icon-box" style="background: #fefce8; color: #ca8a04;">🏠</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title">家計簿</span>
+                        </div>
                         <label class="switch">
                             <input type="checkbox" id="toggle-kakeibo" checked>
                             <span class="slider"></span>
                         </label>
                     </div>
-                    <div class="toggle-item">
-                        <span class="toggle-label">帳簿</span>
+                    <div class="settings-list-item">
+                        <div class="settings-icon-box" style="background: #fef2f2; color: #dc2626;">📖</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title">帳簿</span>
+                        </div>
                         <label class="switch">
                             <input type="checkbox" id="toggle-bookkeeping" checked>
                             <span class="slider"></span>
                         </label>
                     </div>
-                    <div class="toggle-item">
-                        <span class="toggle-label">付箋</span>
+                    <div class="settings-list-item">
+                        <div class="settings-icon-box" style="background: #faf5ff; color: #9333ea;">📌</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title">付箋</span>
+                        </div>
                         <label class="switch">
                             <input type="checkbox" id="toggle-notes" checked>
                             <span class="slider"></span>
@@ -304,8 +332,8 @@
                     </div>
                 </div>
 
-                <div style="margin-top: 2rem; text-align: center; color: var(--text-tertiary); font-size: 0.8rem;">
-                    My Schedule App v1.0.1
+                <div style="text-align: center; margin-top: 2rem; color: #94a3b8; font-size: 0.8rem;">
+                    Version 1.0.1
                 </div>
             </div>
         </main>

@@ -45,7 +45,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
     UI.init();
     Calendar.init();
-    // CalendarTest.init(); // Removed
+    window.Calendar = Calendar;
     Settings.init();
 
     // Restore missing initializations
