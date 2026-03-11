@@ -23,7 +23,7 @@ export class CalendarInstance {
         if (this.container) this.render();
     }
 
-    setViewMode(mode, direction = 'horizontal') {
+    setViewMode(mode) {
         const oldMode = this.viewMode;
         if (oldMode === mode) return;
         this.viewMode = mode;
@@ -40,18 +40,9 @@ export class CalendarInstance {
             return;
         }
 
-        if (direction === 'vertical') {
-            slider.classList.add('is-vertical');
-            slider.style.transition = 'none';
-            slider.style.transform = mode === 'week' ? 'translateY(0)' : 'translateY(-50%)';
-            slider.offsetHeight;
-            slider.style.transition = 'transform 0.5s cubic-bezier(0.19, 1, 0.22, 1)';
-            slider.style.transform = mode === 'week' ? 'translateY(-50%)' : 'translateY(0)';
-        } else {
-            slider.classList.remove('is-vertical');
-            slider.style.transition = 'transform 0.4s ease';
-            slider.style.transform = mode === 'month' ? 'translateX(0)' : 'translateX(-50%)';
-        }
+        // Horizontal shift only
+        slider.style.transition = 'transform 0.4s cubic-bezier(0.19, 1, 0.22, 1)';
+        slider.style.transform = mode === 'month' ? 'translateX(0)' : 'translateX(-50%)';
 
         // Update active view data attribute for CSS height control
         this.container.dataset.view = mode;
@@ -125,7 +116,7 @@ export class CalendarInstance {
             btn.className = `view-mode-btn ${this.viewMode === m ? 'active' : ''}`;
             btn.textContent = m === 'month' ? '月' : '週';
             btn.dataset.mode = m;
-            btn.onclick = () => this.setViewMode(m, 'vertical'); // Default to vertical for 'peek' feel if desired
+            btn.onclick = () => this.setViewMode(m, 'horizontal');
             selector.appendChild(btn);
         });
 

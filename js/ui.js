@@ -74,10 +74,6 @@ export const UI = {
                 this.closeSwipe(el);
             }
 
-            if (isSwiping) {
-                el.style.pointerEvents = 'none';
-                setTimeout(() => el.style.pointerEvents = '', 50);
-            }
         });
     },
 
