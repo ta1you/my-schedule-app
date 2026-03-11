@@ -202,12 +202,10 @@ export class CalendarInstance {
                     if (dx < -minDistance) {
                         if (this.viewMode === 'month') {
                             this.setViewMode('week', 'horizontal');
-                            e.preventDefault();
                         }
                     } else if (dx > minDistance) {
                         if (this.viewMode === 'week') {
                             this.setViewMode('month', 'horizontal');
-                            e.preventDefault();
                         }
                     }
                 }

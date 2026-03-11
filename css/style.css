@@ -426,9 +426,10 @@ body {
 /* Calendar View */
 /* Calendar Slider Layout */
 #calendar-view {
-    overflow: hidden;
+    overflow-x: hidden;
     width: 100%;
     position: relative;
+    min-height: 400px;
 }
 
 .calendar-slider {
@@ -436,11 +437,13 @@ body {
     width: 200%;
     transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
     will-change: transform;
+    align-items: flex-start;
 }
 
 .calendar-view-pane {
     width: 50%;
     flex-shrink: 0;
+    height: auto;
 }
 
 .calendar-controls {
