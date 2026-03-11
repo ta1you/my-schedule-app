@@ -42,26 +42,19 @@ export class CalendarInstance {
 
         if (direction === 'vertical') {
             slider.classList.add('is-vertical');
-            // Starting position (assume we were in Month)
             slider.style.transition = 'none';
             slider.style.transform = mode === 'week' ? 'translateY(0)' : 'translateY(-50%)';
-
-            // Force reflow
             slider.offsetHeight;
-
             slider.style.transition = 'transform 0.5s cubic-bezier(0.19, 1, 0.22, 1)';
             slider.style.transform = mode === 'week' ? 'translateY(-50%)' : 'translateY(0)';
-
-            setTimeout(() => {
-                // After animation, we might want to stay in vertical layout or revert
-                // For simplicity, let's keep the slider state 
-                // but usually we cleanup.
-            }, 500);
         } else {
             slider.classList.remove('is-vertical');
             slider.style.transition = 'transform 0.4s ease';
             slider.style.transform = mode === 'month' ? 'translateX(0)' : 'translateX(-50%)';
         }
+
+        // Update active view data attribute for CSS height control
+        this.container.dataset.view = mode;
 
         // Update buttons
         this.container.querySelectorAll('.view-mode-btn').forEach(btn => {
@@ -108,6 +101,7 @@ export class CalendarInstance {
     render() {
         if (!this.container) return;
         this.container.innerHTML = '';
+        this.container.dataset.view = this.viewMode;
 
         // --- Header Controls ---
         const controlsDiv = document.createElement('div');
