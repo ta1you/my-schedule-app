@@ -1129,8 +1129,8 @@ select:focus {
 }
 
 /* Category Colors */
-.category-勉強, .type-勉強 { background-color: #3b82f6 !important; }
-.category-バイト, .type-バイト { background-color: #ef4444 !important; }
+.category-勉強, .type-勉強 { background-color: #3b82f6 !important; } /* Blue */
+.category-バイト, .type-バイト { background-color: #8b5cf6 !important; } /* Purple (Changed from Red) */
 .category-学校, .type-学校, .category-予定, .type-予定 { background-color: #10b981 !important; } /* Green */
 .category-遊び, .type-遊び { background-color: #f59e0b !important; }
 .category-その他, .type-その他 { background-color: #64748b !important; }
@@ -1141,7 +1141,7 @@ select:focus {
 }
 
 .schedule-item[data-category="勉強"] .schedule-item-inner { border-left-color: #3b82f6; }
-.schedule-item[data-category="バイト"] .schedule-item-inner { border-left-color: #ef4444; }
+.schedule-item[data-category="バイト"] .schedule-item-inner { border-left-color: #8b5cf6; }
 .schedule-item[data-category="学校"] .schedule-item-inner,
 .schedule-item[data-category="予定"] .schedule-item-inner { border-left-color: #10b981; }
 .schedule-item[data-category="遊び"] .schedule-item-inner { border-left-color: #f59e0b; }
