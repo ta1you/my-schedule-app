@@ -84,7 +84,45 @@ body {
     line-height: 1.6;
     height: 100vh;
     overflow: hidden;
+    position: relative;
     /* App-like feel */
+}
+
+/* Fixed Background Wrapper */
+body.has-wallpaper::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: var(--bg-image);
+    background-size: cover;
+    background-position: center;
+    background-attachment: scroll; /* Keep scroll, position fixed handles it */
+    z-index: -10;
+    pointer-events: none;
+}
+
+/* Glassmorphism for Wallpaper Mode */
+body.has-wallpaper .schedule-item-inner,
+body.has-wallpaper .calendar-month,
+body.has-wallpaper .weekly-grid,
+body.has-wallpaper .note-card,
+body.has-wallpaper #bookkeeping-form,
+body.has-wallpaper .finance-summary-card,
+body.has-wallpaper .settings-view {
+    background: rgba(255, 255, 255, 0.70) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+body.has-wallpaper .app-header {
+    background: rgba(255, 255, 255, 0.5) !important;
+}
+
+body.has-wallpaper .bottom-nav {
+    background: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
 }
 
 /* Utilities */

@@ -136,14 +136,13 @@ export const Settings = {
         if (btnNotes) btnNotes.style.display = this.prefs.showNotes ? '' : 'none';
 
         if (this.prefs.backgroundImage) {
-            document.body.style.backgroundImage = `url(${this.prefs.backgroundImage})`;
-            document.body.style.backgroundSize = 'cover';
-            document.body.style.backgroundPosition = 'center';
-            document.body.style.backgroundAttachment = 'fixed';
+            document.body.style.setProperty('--bg-image', `url(${this.prefs.backgroundImage})`);
+            document.body.classList.add('has-wallpaper');
             const appEl = document.getElementById('app');
             if (appEl) appEl.style.backgroundColor = 'transparent';
         } else {
-            document.body.style.backgroundImage = '';
+            document.body.style.removeProperty('--bg-image');
+            document.body.classList.remove('has-wallpaper');
             const appEl = document.getElementById('app');
             if (appEl) appEl.style.backgroundColor = '';
         }
