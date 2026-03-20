@@ -17,13 +17,11 @@ const firebaseConfig = {
 // Note: We use the CDN scripts in index.html, so 'firebase' global is available
 let app;
 let db;
-let auth;
 
 try {
     if (typeof firebase !== 'undefined') {
         app = firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
-        auth = firebase.auth();
         console.log('Firebase initialized');
     } else {
         console.warn('Firebase SDK not loaded');
@@ -32,4 +30,4 @@ try {
     console.error('Firebase initialization error:', e);
 }
 
-export { app, db, auth };
+export { app, db };
