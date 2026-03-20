@@ -1,5 +1,6 @@
 import { db } from './firebase-config.js';
 import { Auth } from './auth.js';
+import { SafeStorage } from './utils.js';
 
 const FINANCE_KEY = 'my_finance_pwa_data';
 let items = []; // In-memory cache
@@ -37,7 +38,7 @@ export const Finance = {
             } else {
                 items = remoteItems;
                 items.sort((a, b) => new Date(a.date) - new Date(b.date));
-                localStorage.setItem(FINANCE_KEY, JSON.stringify(items));
+                SafeStorage.setItem(FINANCE_KEY, JSON.stringify(items));
                 this._notifyChange();
             }
         });
@@ -45,7 +46,7 @@ export const Finance = {
 
     loadFromLocal() {
         try {
-            const data = localStorage.getItem(FINANCE_KEY);
+            const data = SafeStorage.getItem(FINANCE_KEY);
             items = data ? JSON.parse(data) : [];
         } catch (e) {
             items = [];
@@ -65,7 +66,7 @@ export const Finance = {
         const existing = items.findIndex(i => i.id === item.id);
         if (existing >= 0) items[existing] = item; else items.push(item);
         items.sort((a, b) => new Date(a.date) - new Date(b.date));
-        localStorage.setItem(FINANCE_KEY, JSON.stringify(items));
+        SafeStorage.setItem(FINANCE_KEY, JSON.stringify(items));
         this._notifyChange();
 
         // Cloud update
@@ -78,7 +79,7 @@ export const Finance = {
 
     delete(id) {
         items = items.filter(i => i.id !== id);
-        localStorage.setItem(FINANCE_KEY, JSON.stringify(items));
+        SafeStorage.setItem(FINANCE_KEY, JSON.stringify(items));
         this._notifyChange();
 
         const uid = Auth.getUserId();

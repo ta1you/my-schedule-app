@@ -1,5 +1,6 @@
 import { db } from './firebase-config.js';
 import { Auth } from './auth.js';
+import { SafeStorage } from './utils.js';
 
 const KAKEIBO_KEY = 'my_kakeibo_pwa_data';
 let items = []; // In-memory cache
@@ -12,7 +13,7 @@ export const Kakeibo = {
 
         // 1. Load Local
         try {
-            const data = localStorage.getItem(KAKEIBO_KEY);
+            const data = SafeStorage.getItem(KAKEIBO_KEY);
             items = data ? JSON.parse(data) : [];
         } catch (e) { items = []; }
         this._notifyChange();
@@ -36,7 +37,7 @@ export const Kakeibo = {
             } else {
                 items = remoteItems;
                 items.sort((a, b) => this._parseDate(b.date) - this._parseDate(a.date)); // Descending for list
-                localStorage.setItem(KAKEIBO_KEY, JSON.stringify(items));
+                SafeStorage.setItem(KAKEIBO_KEY, JSON.stringify(items));
                 this._notifyChange();
             }
         });
@@ -51,7 +52,7 @@ export const Kakeibo = {
         const existing = items.findIndex(i => i.id === item.id);
         if (existing >= 0) items[existing] = item; else items.push(item);
         items.sort((a, b) => this._parseDate(b.date) - this._parseDate(a.date));
-        localStorage.setItem(KAKEIBO_KEY, JSON.stringify(items));
+        SafeStorage.setItem(KAKEIBO_KEY, JSON.stringify(items));
         this._notifyChange();
 
         // Cloud update
@@ -64,7 +65,7 @@ export const Kakeibo = {
 
     delete(id) {
         items = items.filter(i => i.id !== id);
-        localStorage.setItem(KAKEIBO_KEY, JSON.stringify(items));
+        SafeStorage.setItem(KAKEIBO_KEY, JSON.stringify(items));
         this._notifyChange();
 
         const uid = Auth.getUserId();

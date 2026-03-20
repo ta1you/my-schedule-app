@@ -269,6 +269,25 @@
             <div id="settings-view" class="settings-view" hidden style="width: 100%; padding: 1rem; background: #f8fafc; min-height: 100%;">
                 <h2 style="margin: 1rem 0 1.5rem 0.5rem; font-size: 1.8rem; font-weight: 800; color: #1e293b;">設定</h2>
                 
+                <div class="settings-section-header">データ管理</div>
+                <div class="settings-list-group">
+                    <div class="settings-list-item" onclick="document.getElementById('backup-file-input').click()" style="cursor: pointer;">
+                        <div class="settings-icon-box" style="background: #fce7f3; color: #db2777;">📥</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title">データ復元</span>
+                            <span class="settings-item-subtitle">バックアップ(JSON)読込</span>
+                            <input type="file" id="backup-file-input" accept=".json" style="display:none;">
+                        </div>
+                    </div>
+                    <div class="settings-list-item" id="btn-export-backup" style="cursor: pointer;">
+                        <div class="settings-icon-box" style="background: #e0e7ff; color: #4f46e5;">📤</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title">データバックアップ</span>
+                            <span class="settings-item-subtitle">全てのデータをJSON保存</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="settings-section-header">アプリ内設定</div>
                 <div class="settings-list-group">
                     <div class="settings-list-item" onclick="Settings.showCalendarSubSettings(true)" style="cursor: pointer;">

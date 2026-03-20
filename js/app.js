@@ -69,6 +69,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     setupEventListeners();
+
+    // 起動時のデータチェック: データが空の場合、バックアップ復元を促す
+    setTimeout(() => {
+        const hasAnyData = Object.keys(localStorage).some(key => key.includes('_pwa_data') && localStorage.getItem(key).length > 2); // >2 to ignore "[]"
+        if (!hasAnyData) {
+            if (confirm("データが空のようです。以前のバックアップ(JSONファイル)をお持ちの場合は、設定から復元できます。設定画面を開きますか？")) {
+                document.getElementById('btn-settings').click();
+            }
+        }
+    }, 1500);
 });
 
 function setupEventListeners() {

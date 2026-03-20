@@ -20,3 +20,22 @@ export function formatTimeForInput(date) {
 export function getTodayString() {
     return formatDateForInput(new Date());
 }
+
+export const SafeStorage = {
+    getItem(key) {
+        let data = localStorage.getItem(key);
+        if (!data) {
+            const backup = localStorage.getItem(key + '_backup');
+            if (backup) {
+                console.warn(`Restored ${key} from backup`);
+                data = backup;
+                localStorage.setItem(key, backup);
+            }
+        }
+        return data;
+    },
+    setItem(key, value) {
+        localStorage.setItem(key, value);
+        localStorage.setItem(key + '_backup', value);
+    }
+};

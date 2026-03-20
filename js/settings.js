@@ -1,3 +1,5 @@
+import { SafeStorage } from './utils.js';
+
 export const Settings = {
     // Default preferences
     defaults: {
@@ -35,10 +37,47 @@ export const Settings = {
         }
     },
 
+    exportData() {
+        const data = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            const value = localStorage.getItem(key);
+            try {
+                data[key] = JSON.parse(value);
+            } catch(e) {
+                data[key] = value;
+            }
+        }
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `my_schedule_backup_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    },
+
+    async importData(file) {
+        if (!file) return;
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            for (const key in data) {
+                const value = data[key];
+                localStorage.setItem(key, typeof value === 'object' ? JSON.stringify(value) : value);
+            }
+            alert('データを復元しました。アプリを再読み込みします。');
+            location.reload();
+        } catch (e) {
+            console.error('Import failed', e);
+            alert('データの復元に失敗しました。無効なファイルです。');
+        }
+    },
+
     // Load preferences from localStorage
     load() {
         try {
-            const saved = localStorage.getItem('app_settings');
+            const saved = SafeStorage.getItem('app_settings');
             if (saved) {
                 this.prefs = { ...this.defaults, ...JSON.parse(saved) };
             } else {
@@ -57,7 +96,7 @@ export const Settings = {
     // Save preferences to localStorage
     save() {
         try {
-            localStorage.setItem('app_settings', JSON.stringify(this.prefs));
+            SafeStorage.setItem('app_settings', JSON.stringify(this.prefs));
             this.apply();
         } catch (e) {
             console.error('Failed to save settings:', e);
@@ -107,6 +146,19 @@ export const Settings = {
         const tNotes = document.getElementById('toggle-notes');
         const calStart = document.getElementById('setting-calendar-start');
         const calEnd = document.getElementById('setting-calendar-end');
+        
+        const btnExport = document.getElementById('btn-export-backup');
+        const fileInput = document.getElementById('backup-file-input');
+
+        if (btnExport) btnExport.addEventListener('click', () => this.exportData());
+        if (fileInput) fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                if (confirm('現在のデータは上書きされます。復元しますか？')) {
+                    this.importData(e.target.files[0]);
+                }
+                e.target.value = ''; // Reset
+            }
+        });
 
         if (tFinance) tFinance.addEventListener('change', (e) => { this.prefs.showFinance = e.target.checked; this.save(); });
         if (tKakeibo) tKakeibo.addEventListener('change', (e) => { this.prefs.showKakeibo = e.target.checked; this.save(); });

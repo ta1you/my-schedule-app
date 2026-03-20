@@ -1,6 +1,6 @@
 import { db } from './firebase-config.js';
 import { Auth } from './auth.js';
-import { generateId, getTodayString } from './utils.js';
+import { generateId, getTodayString, SafeStorage } from './utils.js';
 
 const BOOKKEEPING_KEY = 'my_bookkeeping_pwa_data';
 let journalEntries = [];
@@ -67,7 +67,7 @@ export const Bookkeeping = {
             } else {
                 journalEntries = remoteItems;
                 journalEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
-                localStorage.setItem(BOOKKEEPING_KEY, JSON.stringify(journalEntries));
+                SafeStorage.setItem(BOOKKEEPING_KEY, JSON.stringify(journalEntries));
                 this._notifyChange();
             }
         });
@@ -75,7 +75,7 @@ export const Bookkeeping = {
 
     loadFromLocal() {
         try {
-            const data = localStorage.getItem(BOOKKEEPING_KEY);
+            const data = SafeStorage.getItem(BOOKKEEPING_KEY);
             journalEntries = data ? JSON.parse(data) : [];
         } catch (e) {
             journalEntries = [];
@@ -89,7 +89,7 @@ export const Bookkeeping = {
         if (existing >= 0) journalEntries[existing] = entry; else journalEntries.push(entry);
 
         journalEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
-        localStorage.setItem(BOOKKEEPING_KEY, JSON.stringify(journalEntries));
+        SafeStorage.setItem(BOOKKEEPING_KEY, JSON.stringify(journalEntries));
         this._notifyChange();
 
         const uid = Auth.getUserId();
@@ -101,7 +101,7 @@ export const Bookkeeping = {
 
     deleteEntry(id) {
         journalEntries = journalEntries.filter(i => i.id !== id);
-        localStorage.setItem(BOOKKEEPING_KEY, JSON.stringify(journalEntries));
+        SafeStorage.setItem(BOOKKEEPING_KEY, JSON.stringify(journalEntries));
         this._notifyChange();
 
         const uid = Auth.getUserId();

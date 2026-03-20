@@ -1,5 +1,6 @@
 import { db } from './firebase-config.js';
 import { Auth } from './auth.js';
+import { SafeStorage } from './utils.js';
 
 const STORAGE_KEY = 'my_schedule_pwa_data';
 let schedules = []; // In-memory cache
@@ -48,14 +49,14 @@ export const Storage = {
         // Sort
         schedules.sort((a, b) => new Date(a.date + 'T' + (a.startTime || '00:00')) - new Date(b.date + 'T' + (b.startTime || '00:00')));
         // Update LocalStorage
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
+        SafeStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
         // Notify listeners
         this._notifyListeners();
     },
 
     loadFromLocal() {
         try {
-            const data = localStorage.getItem(STORAGE_KEY);
+            const data = SafeStorage.getItem(STORAGE_KEY);
             schedules = data ? JSON.parse(data) : [];
         } catch (e) {
             console.error('Local load failed', e);

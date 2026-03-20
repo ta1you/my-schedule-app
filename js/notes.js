@@ -1,6 +1,6 @@
 import { db } from './firebase-config.js';
 import { Auth } from './auth.js';
-import { generateId, getTodayString } from './utils.js';
+import { generateId, getTodayString, SafeStorage } from './utils.js';
 
 const NOTES_KEY = 'my_notes_pwa_data';
 let notes = [];
@@ -32,7 +32,7 @@ export const Notes = {
             } else {
                 notes = remoteItems;
                 notes.sort((a, b) => new Date(b.date) - new Date(a.date));
-                localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+                SafeStorage.setItem(NOTES_KEY, JSON.stringify(notes));
                 this._notifyChange();
             }
         });
@@ -40,7 +40,7 @@ export const Notes = {
 
     loadFromLocal() {
         try {
-            const data = localStorage.getItem(NOTES_KEY);
+            const data = SafeStorage.getItem(NOTES_KEY);
             notes = data ? JSON.parse(data) : [];
             notes.sort((a, b) => new Date(b.date) - new Date(a.date));
         } catch (e) {
@@ -56,7 +56,7 @@ export const Notes = {
         if (existing >= 0) notes[existing] = note; else notes.push(note);
 
         notes.sort((a, b) => new Date(b.date) - new Date(a.date));
-        localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+        SafeStorage.setItem(NOTES_KEY, JSON.stringify(notes));
         this._notifyChange();
 
         const uid = Auth.getUserId();
@@ -68,7 +68,7 @@ export const Notes = {
 
     delete(id) {
         notes = notes.filter(i => i.id !== id);
-        localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+        SafeStorage.setItem(NOTES_KEY, JSON.stringify(notes));
         this._notifyChange();
 
         const uid = Auth.getUserId();
