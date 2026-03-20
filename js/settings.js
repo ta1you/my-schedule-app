@@ -195,33 +195,69 @@ export const Settings = {
 
         const bgInput = document.getElementById('setting-bg-image');
         const bgClear = document.getElementById('btn-bg-clear');
+        const cropModal = document.getElementById('crop-modal');
+        const cropImage = document.getElementById('crop-image');
+        const btnCropApply = document.getElementById('btn-crop-apply');
+        let cropper = null;
 
-        if (bgInput) {
+        if (bgInput && cropModal) {
             bgInput.addEventListener('change', (e) => {
                 if (e.target.files && e.target.files[0]) {
                     const file = e.target.files[0];
-                    // Check size to prevent localStorage QuotaExceededError (Max 2MB)
-                    if (file.size > 2 * 1024 * 1024) {
-                        alert('画像サイズが大きすぎます。2MB以下の画像を選択してください。（ブラウザの保存容量制限のため）');
+                    if (file.size > 10 * 1024 * 1024) {
+                        alert('画像サイズが10MBを超えています。少し軽い画像を選択してください。');
                         e.target.value = '';
                         return;
                     }
 
                     const reader = new FileReader();
                     reader.onload = (event) => {
-                        this.prefs.backgroundImage = event.target.result;
-                        try {
-                            this.save();
-                            this.updateUI(); // Important to show the clear button
-                        } catch (err) {
-                            alert('保存に失敗しました。容量が大きすぎる可能性があります。');
-                            this.prefs.backgroundImage = null;
-                            this.updateUI();
+                        cropImage.src = event.target.result;
+                        cropModal.showModal();
+                        
+                        if (cropper) {
+                            cropper.destroy();
                         }
+                        
+                        // Wait for modal to render
+                        setTimeout(() => {
+                            cropper = new Cropper(cropImage, {
+                                aspectRatio: window.innerWidth / window.innerHeight,
+                                viewMode: 3,
+                                dragMode: 'move',
+                                guides: false,
+                                center: false,
+                                autoCropArea: 1,
+                                background: false,
+                            });
+                        }, 50);
                     };
                     reader.readAsDataURL(file);
                 }
                 e.target.value = ''; // Reset
+            });
+
+            btnCropApply.addEventListener('click', () => {
+                if (!cropper) return;
+                
+                // Crop and compress
+                const canvas = cropper.getCroppedCanvas({
+                    maxWidth: 1080,
+                    maxHeight: 1920
+                });
+                
+                const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                
+                this.prefs.backgroundImage = croppedDataUrl;
+                try {
+                    this.save();
+                    this.updateUI(); // Important to show the clear button
+                    cropModal.close();
+                } catch (err) {
+                    alert('保存に失敗しました。解像度が高すぎる可能性があります。');
+                    this.prefs.backgroundImage = null;
+                    this.updateUI();
+                }
             });
         }
         
