@@ -9,8 +9,8 @@ export const Auth = {
             let id = SafeStorage.getItem('deviceId');
             
             if (!id) {
-                // Generate a random ID using crypto.randomUUID or fallback
-                id = window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'dev_' + Date.now() + Math.random().toString(36).substring(2);
+                // Generate a random ID using window.crypto.randomUUID or fallback
+                id = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : 'dev_' + Date.now() + Math.random().toString(36).substring(2);
                 SafeStorage.setItem('deviceId', id);
                 console.log('新規Device IDを生成しました:', id);
             } else {

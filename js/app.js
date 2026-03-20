@@ -72,7 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 起動時のデータチェック: データが空の場合、バックアップ復元を促す
     setTimeout(() => {
-        const hasAnyData = Object.keys(localStorage).some(key => key.includes('_pwa_data') && localStorage.getItem(key).length > 2); // >2 to ignore "[]"
+        const hasAnyData = Object.keys(localStorage).some(key => {
+            const val = localStorage.getItem(key);
+            return key.includes('_pwa_data') && val && val.length > 2;
+        });
         if (!hasAnyData) {
             if (confirm("データが空のようです。以前のバックアップ(JSONファイル)をお持ちの場合は、設定から復元できます。設定画面を開きますか？")) {
                 document.getElementById('btn-settings').click();
