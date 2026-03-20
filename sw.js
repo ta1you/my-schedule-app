@@ -1,4 +1,4 @@
-const CACHE_NAME = 'schedule-app-v8'; // ← ★更新ごとに変える
+const CACHE_NAME = 'schedule-app-v9'; // ← ★更新ごとに変える
 const ASSETS = [
     './',
     './index.html',

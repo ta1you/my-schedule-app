@@ -102,27 +102,48 @@ body.has-wallpaper::before {
 }
 
 /* Glassmorphism for Wallpaper Mode */
-body.has-wallpaper .schedule-item-inner,
+/* Make main containers transparent so the blur doesn't stack too much */
+body.has-wallpaper .settings-view,
+body.has-wallpaper .finance-view,
+body.has-wallpaper #main-content {
+    background: transparent !important;
+}
+
+/* Inner elements and cards get the frosted glass effect */
+body.has-wallpaper .schedule-item,
+body.has-wallpaper .settings-list-item,
 body.has-wallpaper .calendar-month,
 body.has-wallpaper .weekly-grid,
 body.has-wallpaper .note-card,
-body.has-wallpaper #bookkeeping-form,
+body.has-wallpaper [id$="-form"],
+body.has-wallpaper form,
 body.has-wallpaper .finance-summary-card,
-body.has-wallpaper .settings-view {
-    background: rgba(255, 255, 255, 0.70) !important;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+body.has-wallpaper .journal-list > div,
+body.has-wallpaper #kakeibo-legend {
+    background: rgba(255, 255, 255, 0.45) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Remove stacked backgrounds inside already blurred items */
+body.has-wallpaper .schedule-item-inner,
+body.has-wallpaper .day-cell {
+    background: transparent !important;
 }
 
 body.has-wallpaper .app-header {
     background: rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
 }
 
 body.has-wallpaper .bottom-nav {
-    background: rgba(255, 255, 255, 0.6) !important;
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
 /* Utilities */
