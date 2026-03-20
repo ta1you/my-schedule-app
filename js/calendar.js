@@ -157,6 +157,10 @@ export class CalendarInstance {
 
         // Set initial transform
         slider.style.transform = this.viewMode === 'month' ? 'translateX(0)' : 'translateX(-50%)';
+
+        if (Settings.prefs.showShiftSalary) {
+            this.renderShiftSalarySummary();
+        }
     }
 
     updateHeaderLabel() {
@@ -451,6 +455,64 @@ export class CalendarInstance {
         block.onpointermove = onPointerMove;
         block.onpointerup = onPointerUp;
         block.onpointercancel = onPointerUp;
+    }
+
+    renderShiftSalarySummary() {
+        if (!this.container) return;
+        
+        const schedules = Storage.getAll();
+        let totalMinutes = 0;
+        
+        const year = this.currentYear;
+        const monthFilterStr = `${year}-${String(this.currentMonth + 1).padStart(2, '0')}`;
+        
+        const shiftEvents = schedules.filter(s => {
+            // Category can be 'バイト'
+            // Ensure date matches and has both startTime and endTime
+            return s.category === 'バイト' && s.date && s.date.startsWith(monthFilterStr) && s.startTime && s.endTime;
+        });
+        
+        shiftEvents.forEach(s => {
+            const [sh, sm] = s.startTime.split(':').map(Number);
+            const [eh, em] = s.endTime.split(':').map(Number);
+            let duration = (eh * 60 + em) - (sh * 60 + sm);
+            if (duration < 0) duration += 24 * 60; // Handle over-midnight
+            totalMinutes += duration;
+        });
+        
+        const totalHours = totalMinutes / 60;
+        const hwage = Settings.prefs.hourlyWage || 1000;
+        const totalSalary = Math.floor(totalHours * hwage);
+        
+        const summaryCard = document.createElement('div');
+        summaryCard.className = 'shift-salary-card';
+        summaryCard.style.cssText = `
+            margin: 1rem;
+            padding: 1rem;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        `;
+        
+        const titleDiv = document.createElement('div');
+        titleDiv.innerHTML = `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 2px;">${this.currentMonth + 1}月のバイト合計</div>
+                              <div style="font-size: 1.2rem; font-weight: bold; color: var(--text-primary);">${totalHours.toFixed(1)} <span style="font-size: 0.9rem; font-weight: normal;">時間</span></div>`;
+                              
+        const salaryDiv = document.createElement('div');
+        salaryDiv.style.textAlign = 'right';
+        salaryDiv.innerHTML = `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 2px;">予想給料</div>
+                               <div style="font-size: 1.3rem; font-weight: 800; color: #10b981;">¥${totalSalary.toLocaleString()}</div>`;
+                               
+        summaryCard.appendChild(titleDiv);
+        summaryCard.appendChild(salaryDiv);
+        
+        this.container.appendChild(summaryCard);
     }
 }
 

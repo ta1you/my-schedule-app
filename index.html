@@ -398,6 +398,30 @@
                         <span style="font-size: 0.8rem; margin-left: 4px;">時</span>
                     </div>
                 </div>
+
+                <div class="settings-section-header">バイト関連設定</div>
+                <div class="settings-list-group">
+                    <div class="settings-list-item">
+                        <div class="settings-icon-box" style="background: #fdf4ff; color: #c026d3;">💴</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title">給料シミュレーション</span>
+                            <span class="settings-item-subtitle" style="font-size:0.75rem;">カレンダー下に予想給料を表示</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-shift-salary">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="settings-list-item" id="setting-hourly-wage-container" style="display: none;">
+                        <div class="settings-icon-box" style="background: #fefce8; color: #eab308;">⏱️</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title">時給設定</span>
+                        </div>
+                        <input type="number" id="setting-hourly-wage" class="settings-input-inline" min="0" value="1000" style="width: 80px;">
+                        <span style="font-size: 0.8rem; margin-left: 4px;">円</span>
+                    </div>
+                </div>
+
                 <p style="padding: 0 1rem; font-size: 0.85rem; color: #64748b; line-height: 1.4;">
                     ※設定した時間外の予定は表示されませんのでご注意ください。
                 </p>

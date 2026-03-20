@@ -11,7 +11,9 @@ export const Settings = {
         showNotes: true,
         calendarStart: 5,
         calendarEnd: 24,
-        backgroundImage: null
+        backgroundImage: null,
+        showShiftSalary: false,
+        hourlyWage: 1000
     },
 
     // Current preferences
@@ -113,6 +115,9 @@ export const Settings = {
         const calStart = document.getElementById('setting-calendar-start');
         const calEnd = document.getElementById('setting-calendar-end');
         const btnBgClear = document.getElementById('btn-bg-clear');
+        const toggleShiftSalary = document.getElementById('toggle-shift-salary');
+        const hourlyWageInput = document.getElementById('setting-hourly-wage');
+        const hourlyWageContainer = document.getElementById('setting-hourly-wage-container');
 
         if (toggleFinance) toggleFinance.checked = this.prefs.showFinance;
         if (toggleKakeibo) toggleKakeibo.checked = this.prefs.showKakeibo;
@@ -121,6 +126,10 @@ export const Settings = {
         if (calStart) calStart.value = this.prefs.calendarStart;
         if (calEnd) calEnd.value = this.prefs.calendarEnd;
         if (btnBgClear) btnBgClear.style.display = this.prefs.backgroundImage ? 'flex' : 'none';
+        
+        if (toggleShiftSalary) toggleShiftSalary.checked = this.prefs.showShiftSalary;
+        if (hourlyWageInput) hourlyWageInput.value = this.prefs.hourlyWage;
+        if (hourlyWageContainer) hourlyWageContainer.style.display = this.prefs.showShiftSalary ? 'flex' : 'none';
     },
 
     // Apply settings
@@ -161,6 +170,8 @@ export const Settings = {
         const tNotes = document.getElementById('toggle-notes');
         const calStart = document.getElementById('setting-calendar-start');
         const calEnd = document.getElementById('setting-calendar-end');
+        const tShiftSalary = document.getElementById('toggle-shift-salary');
+        const hwInput = document.getElementById('setting-hourly-wage');
         
         const btnExport = document.getElementById('btn-export-backup');
         const fileInput = document.getElementById('backup-file-input');
@@ -189,6 +200,21 @@ export const Settings = {
         if (calEnd) {
             calEnd.addEventListener('change', (e) => {
                 this.prefs.calendarEnd = parseInt(e.target.value);
+                this.save();
+            });
+        }
+        
+        if (tShiftSalary) {
+            tShiftSalary.addEventListener('change', (e) => {
+                this.prefs.showShiftSalary = e.target.checked;
+                this.save();
+                this.updateUI(); // to toggle the wage input visibility
+            });
+        }
+        
+        if (hwInput) {
+            hwInput.addEventListener('change', (e) => {
+                this.prefs.hourlyWage = parseInt(e.target.value) || 1000;
                 this.save();
             });
         }
