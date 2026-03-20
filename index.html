@@ -288,6 +288,25 @@
                     </div>
                 </div>
 
+                <div class="settings-section-header">外観設定</div>
+                <div class="settings-list-group">
+                    <div class="settings-list-item" onclick="document.getElementById('setting-bg-image').click()" style="cursor: pointer;">
+                        <div class="settings-icon-box" style="background: #eef2ff; color: #6366f1;">🖼️</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title">背景画像</span>
+                            <span class="settings-item-subtitle">お好みの写真を壁紙に設定</span>
+                            <input type="file" id="setting-bg-image" accept="image/*" style="display:none;">
+                        </div>
+                    </div>
+                    <div class="settings-list-item" id="btn-bg-clear" style="cursor: pointer; display: none;">
+                        <div class="settings-icon-box" style="background: #fef2f2; color: #ef4444;">🗑️</div>
+                        <div class="settings-item-content">
+                            <span class="settings-item-title" style="color: #ef4444;">背景をクリア</span>
+                            <span class="settings-item-subtitle">元の背景色に戻す</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="settings-section-header">アプリ内設定</div>
                 <div class="settings-list-group">
                     <div class="settings-list-item" onclick="Settings.showCalendarSubSettings(true)" style="cursor: pointer;">

@@ -10,7 +10,8 @@ export const Settings = {
         showBookkeeping: true,
         showNotes: true,
         calendarStart: 5,
-        calendarEnd: 24
+        calendarEnd: 24,
+        backgroundImage: null
     },
 
     // Current preferences
@@ -111,6 +112,7 @@ export const Settings = {
         const toggleNotes = document.getElementById('toggle-notes');
         const calStart = document.getElementById('setting-calendar-start');
         const calEnd = document.getElementById('setting-calendar-end');
+        const btnBgClear = document.getElementById('btn-bg-clear');
 
         if (toggleFinance) toggleFinance.checked = this.prefs.showFinance;
         if (toggleKakeibo) toggleKakeibo.checked = this.prefs.showKakeibo;
@@ -118,6 +120,7 @@ export const Settings = {
         if (toggleNotes) toggleNotes.checked = this.prefs.showNotes;
         if (calStart) calStart.value = this.prefs.calendarStart;
         if (calEnd) calEnd.value = this.prefs.calendarEnd;
+        if (btnBgClear) btnBgClear.style.display = this.prefs.backgroundImage ? 'flex' : 'none';
     },
 
     // Apply settings
@@ -131,6 +134,19 @@ export const Settings = {
         if (btnKakeibo) btnKakeibo.style.display = this.prefs.showKakeibo ? '' : 'none';
         if (btnBookkeeping) btnBookkeeping.style.display = this.prefs.showBookkeeping ? '' : 'none';
         if (btnNotes) btnNotes.style.display = this.prefs.showNotes ? '' : 'none';
+
+        if (this.prefs.backgroundImage) {
+            document.body.style.backgroundImage = `url(${this.prefs.backgroundImage})`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundAttachment = 'fixed';
+            const appEl = document.getElementById('app');
+            if (appEl) appEl.style.backgroundColor = 'transparent';
+        } else {
+            document.body.style.backgroundImage = '';
+            const appEl = document.getElementById('app');
+            if (appEl) appEl.style.backgroundColor = '';
+        }
 
         // Notify Calendar to refresh if it exists
         if (window.Calendar && window.Calendar.refresh) {
@@ -175,6 +191,47 @@ export const Settings = {
             calEnd.addEventListener('change', (e) => {
                 this.prefs.calendarEnd = parseInt(e.target.value);
                 this.save();
+            });
+        }
+
+        const bgInput = document.getElementById('setting-bg-image');
+        const bgClear = document.getElementById('btn-bg-clear');
+
+        if (bgInput) {
+            bgInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    // Check size to prevent localStorage QuotaExceededError (Max 2MB)
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert('画像サイズが大きすぎます。2MB以下の画像を選択してください。（ブラウザの保存容量制限のため）');
+                        e.target.value = '';
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        this.prefs.backgroundImage = event.target.result;
+                        try {
+                            this.save();
+                            this.updateUI(); // Important to show the clear button
+                        } catch (err) {
+                            alert('保存に失敗しました。容量が大きすぎる可能性があります。');
+                            this.prefs.backgroundImage = null;
+                            this.updateUI();
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+                e.target.value = ''; // Reset
+            });
+        }
+        
+        if (bgClear) {
+            bgClear.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.prefs.backgroundImage = null;
+                this.save();
+                this.updateUI(); // Hide clear button
             });
         }
     }
