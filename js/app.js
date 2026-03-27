@@ -429,11 +429,59 @@ function setupEventListeners() {
     fab.addEventListener('click', () => {
         form.reset();
         document.getElementById('date').value = getTodayString();
-        form.elements['id'].value = '';
+        
+        // ユーザー要望：00分から始まるとダイヤル操作が楽
+        const now = new Date();
+        const hourStr = String(now.getHours()).padStart(2, '0');
+        document.getElementById('start-time').value = `${hourStr}:00`;
+        
+        form.querySelector('input[name="id"]').value = '';
         document.getElementById('modal-title').textContent = '予定を追加';
         deleteBtn.hidden = true;
         selectedCategory = 'その他';
-        modal.showModal();
+        
+        // 履歴・テンプレート生成
+        const templateContainer = document.getElementById('schedule-templates');
+        if (templateContainer) {
+            const allItems = Storage.getAll();
+            const uniqueTpls = [];
+            const seen = new Set();
+            for (let i = allItems.length - 1; i >= 0; i--) {
+                const item = allItems[i];
+                if (!item.title || !item.startTime || item.title === 'その他') continue;
+                const sig = `${item.title}|${item.startTime}|${item.endTime || ''}`;
+                if (!seen.has(sig)) {
+                    seen.add(sig);
+                    uniqueTpls.push(item);
+                    if (uniqueTpls.length >= 5) break;
+                }
+            }
+            if (uniqueTpls.length > 0) {
+                templateContainer.style.display = 'flex';
+                templateContainer.innerHTML = uniqueTpls.map(u => {
+                    const timeRange = u.startTime + (u.endTime ? '〜' + u.endTime : '');
+                    return `<button type="button" class="btn btn-secondary tpl-btn" style="font-size:0.75rem; padding:6px 10px; white-space:nowrap; border-radius:20px; flex-shrink:0; background:#f1f5f9; border:1px solid #e2e8f0; color:#3b82f6;" data-title="${u.title}" data-start="${u.startTime}" data-end="${u.endTime||''}">${u.title} (${timeRange})</button>`;
+                }).join('');
+                
+                templateContainer.querySelectorAll('.tpl-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.getElementById('title').value = e.target.dataset.title;
+                        document.getElementById('start-time').value = e.target.dataset.start;
+                        document.getElementById('end-time').value = e.target.dataset.end;
+                        // Trigger input event for auto-category selection
+                        document.getElementById('title').dispatchEvent(new Event('input'));
+                    });
+                });
+            } else {
+                templateContainer.style.display = 'none';
+            }
+        }
+        
+        if (modal.showModal) {
+            modal.showModal();
+        } else {
+            modal.setAttribute('open', '');
+        }
     });
 
     // Close Modal
@@ -465,7 +513,8 @@ function setupEventListeners() {
 
     // Delete
     deleteBtn.addEventListener('click', () => {
-        const id = form.id.value;
+        const idInput = form.querySelector('input[name="id"]');
+        const id = idInput ? idInput.value : null;
         if (id && confirm('この予定を削除しますか？')) {
             Storage.delete(id);
             UI.render();
@@ -479,7 +528,7 @@ function setupEventListeners() {
         const schedule = Storage.getById(id);
         if (!schedule) return;
 
-        form.elements['id'].value = schedule.id;
+        form.querySelector('input[name="id"]').value = schedule.id;
         document.getElementById('title').value = schedule.title || '';
         document.getElementById('date').value = schedule.date || getTodayString();
         document.getElementById('start-time').value = schedule.startTime || '';
@@ -491,6 +540,11 @@ function setupEventListeners() {
 
         document.getElementById('modal-title').textContent = '予定を編集';
         deleteBtn.hidden = false;
+        
+        // Hide templates when editing
+        const templateContainer = document.getElementById('schedule-templates');
+        if (templateContainer) templateContainer.style.display = 'none';
+
         if (modal.showModal) {
             modal.showModal();
         } else {

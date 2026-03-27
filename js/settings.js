@@ -6,10 +6,10 @@ export const Settings = {
     defaults: {
         showList: true,
         showCalendar: true,
-        showFinance: true,
-        showKakeibo: true,
-        showBookkeeping: true,
-        showNotes: true,
+        showFinance: false,
+        showKakeibo: false,
+        showBookkeeping: false,
+        showNotes: false,
         calendarStart: 5,
         calendarEnd: 24,
         backgroundImage: null,
@@ -83,11 +83,22 @@ export const Settings = {
     // Load preferences from localStorage
     load() {
         try {
-            const saved = SafeStorage.getItem('app_settings');
-            if (saved) {
-                this.prefs = { ...this.defaults, ...JSON.parse(saved) };
+            const data = SafeStorage.getItem('app_settings');
+            if (data) {
+                this.prefs = Object.assign({}, this.defaults, JSON.parse(data));
+                
+                // One-time auto-hide migration for users who had them implicitly on before
+                if (!this.prefs._v2_nav_migrated) {
+                    this.prefs.showFinance = false;
+                    this.prefs.showKakeibo = false;
+                    this.prefs.showBookkeeping = false;
+                    this.prefs.showNotes = false;
+                    this.prefs._v2_nav_migrated = true;
+                    // Don't call this.save() here as it causes a loop or pre-mature DOM apply. 
+                    // It will stay in memory until next user save, but apply() will hide them anyway.
+                }
             } else {
-                this.prefs = { ...this.defaults };
+                this.prefs = { ...this.defaults, _v2_nav_migrated: true };
             }
         } catch (e) {
             console.error('Failed to load settings:', e);
