@@ -18,9 +18,9 @@ export const ShareFeature = {
             customTabsList.innerHTML = '<span style="color:var(--text-tertiary); font-size:0.8rem;">カスタムタブはありません</span>';
         } else {
             const html = CustomTabs.tabs.map(tab => `
-                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; margin-bottom: 6px; cursor: pointer;">
-                    <input type="checkbox" class="share-tab-cb" value="${tab.id}">
-                    <span style="font-weight: 500; color: var(--text-primary);">${tab.icon} ${tab.title}</span>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 1rem; margin-bottom: 8px; cursor: pointer; background: #f8fafc; padding: 8px 12px; border-radius: 8px;">
+                    <input type="checkbox" class="share-tab-cb" value="${tab.id}" style="width: 20px !important; height: 20px !important; margin: 0 !important; padding: 0 !important; appearance: auto !important; -webkit-appearance: auto !important; flex-shrink: 0;">
+                    <span style="font-weight: bold; color: var(--text-primary);">${tab.icon} ${tab.title}</span>
                 </label>
             `).join('');
             customTabsList.innerHTML = html;
