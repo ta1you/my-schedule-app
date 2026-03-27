@@ -123,6 +123,10 @@ export const ShareFeature = {
             endDate = new Date(startDate);
             endDate.setDate(endDate.getDate() + 6);
             title = '【来週の予定】';
+        } else if (range === 'this_month') {
+            startDate = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
+            endDate = new Date(todayDate.getFullYear(), todayDate.getMonth() + 1, 0);
+            title = '【今月の予定】';
         }
 
         // Format dates as YYYY-MM-DD for comparison
