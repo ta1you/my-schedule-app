@@ -268,104 +268,207 @@
             </div>
 
 
+            <!-- Custom Tab View (Generic Container) -->
+            <div id="custom-tab-view" class="finance-view" hidden style="padding:1rem;">
+            </div>
+
+            <!-- Share View -->
+            <div id="share-view" class="finance-view" hidden style="padding: 1rem; height: 100%; display: flex; flex-direction: column;">
+                <h2 style="margin: 0 0 1rem 0.5rem; font-size: 1.5rem; font-weight: 800; color: #1e293b;">📤 共有・レポート作成</h2>
+                
+                <div style="background: white; padding: 1rem; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1rem; flex-shrink: 0;">
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">スケジュールの期間</label>
+                        <select id="share-range" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-light); font-size: 1rem; background: #f8fafc;">
+                            <option value="today">今日の予定</option>
+                            <option value="tomorrow">明日の予定</option>
+                            <option value="this_week" selected>今週の予定</option>
+                            <option value="next_week">来週の予定</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-weight: bold; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">一緒に共有するカスタムタブ</label>
+                        <div id="share-custom-tabs" style="display: flex; flex-direction: column; gap: 4px;">
+                            <!-- Checkboxes injected by share.js -->
+                        </div>
+                    </div>
+                </div>
+
+                <div style="flex: 1; display: flex; flex-direction: column; min-height: 200px;">
+                    <textarea id="share-preview" readonly style="flex: 1; width: 100%; padding: 1rem; border-radius: 12px; border: 1px solid var(--border-light); resize: none; font-size: 0.95rem; background: white; font-family: sans-serif; line-height: 1.5; color: var(--text-primary);"></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-top: 1rem; padding-bottom: 1rem; flex-shrink: 0;">
+                    <button id="btn-share-copy" class="btn btn-secondary" style="flex: 1; padding: 12px; border-radius: 12px; font-weight: bold; font-size: 1rem; background: #e2e8f0; color: #334155; border: none;">📋 コピーする</button>
+                    <button id="btn-share-api" class="btn btn-primary" style="flex: 1; padding: 12px; border-radius: 12px; font-weight: bold; font-size: 1rem;">📤 シェアする</button>
+                </div>
+            </div>
+
             <!-- Main Settings View -->
             <div id="settings-view" class="settings-view" hidden style="width: 100%; padding: 1rem; background: #f8fafc; min-height: 100%;">
                 <h2 style="margin: 1rem 0 1.5rem 0.5rem; font-size: 1.8rem; font-weight: 800; color: #1e293b;">設定</h2>
                 
-                <div class="settings-section-header">データ管理</div>
-                <div class="settings-list-group">
-                    <div class="settings-list-item" onclick="document.getElementById('backup-file-input').click()" style="cursor: pointer;">
-                        <div class="settings-icon-box" style="background: #fce7f3; color: #db2777;">📥</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title">データ復元</span>
-                            <span class="settings-item-subtitle">バックアップ(JSON)読込</span>
-                            <input type="file" id="backup-file-input" accept=".json" style="display:none;">
+                <details class="settings-accordion">
+                    <summary class="settings-section-header accordion-summary">
+                        データ管理
+                        <span class="accordion-icon">▼</span>
+                    </summary>
+                    <div class="settings-list-group">
+                        <div class="settings-list-item" onclick="document.getElementById('backup-file-input').click()" style="cursor: pointer;">
+                            <div class="settings-icon-box" style="background: #fce7f3; color: #db2777;">📥</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">データ復元</span>
+                                <span class="settings-item-subtitle">バックアップ(JSON)読込</span>
+                                <input type="file" id="backup-file-input" accept=".json" style="display:none;">
+                            </div>
+                        </div>
+                        <div class="settings-list-item" id="btn-export-backup" style="cursor: pointer;">
+                            <div class="settings-icon-box" style="background: #e0e7ff; color: #4f46e5;">📤</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">データバックアップ</span>
+                                <span class="settings-item-subtitle">全てのデータをJSON保存</span>
+                            </div>
+                        </div>
+                        <div class="settings-list-item" id="btn-sync-calendar" style="cursor: pointer;">
+                            <div class="settings-icon-box" style="background: #e0f2fe; color: #0ea5e9;">📱</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">iOSカレンダー同期</span>
+                                <span class="settings-item-subtitle">予定を標準カレンダーに登録</span>
+                            </div>
+                        </div>
+                        <div class="settings-list-item">
+                            <div class="settings-icon-box" style="background: #fefce8; color: #eab308;">⏰</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">同期時の通知時間</span>
+                                <span class="settings-item-subtitle">アラートタイミング</span>
+                            </div>
+                            <select id="setting-sync-alert" class="settings-input-inline" style="width: auto;">
+                                <option value="0">時間通り</option>
+                                <option value="5">5分前</option>
+                                <option value="10" selected>10分前</option>
+                                <option value="15">15分前</option>
+                                <option value="30">30分前</option>
+                                <option value="60">1時間前</option>
+                                <option value="1440">1日前</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="settings-list-item" id="btn-export-backup" style="cursor: pointer;">
-                        <div class="settings-icon-box" style="background: #e0e7ff; color: #4f46e5;">📤</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title">データバックアップ</span>
-                            <span class="settings-item-subtitle">全てのデータをJSON保存</span>
-                        </div>
-                    </div>
-                </div>
+                </details>
 
-                <div class="settings-section-header">外観設定</div>
-                <div class="settings-list-group">
-                    <div class="settings-list-item" onclick="document.getElementById('setting-bg-image').click()" style="cursor: pointer;">
-                        <div class="settings-icon-box" style="background: #eef2ff; color: #6366f1;">🖼️</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title">背景画像</span>
-                            <span class="settings-item-subtitle">お好みの写真を壁紙に設定</span>
-                            <input type="file" id="setting-bg-image" accept="image/*" style="display:none;">
+                <details class="settings-accordion">
+                    <summary class="settings-section-header accordion-summary">
+                        外観設定
+                        <span class="accordion-icon">▼</span>
+                    </summary>
+                    <div class="settings-list-group">
+                        <div class="settings-list-item" onclick="document.getElementById('setting-bg-image').click()" style="cursor: pointer;">
+                            <div class="settings-icon-box" style="background: #eef2ff; color: #6366f1;">🖼️</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">背景画像</span>
+                                <span class="settings-item-subtitle">お好みの写真を壁紙に設定</span>
+                                <input type="file" id="setting-bg-image" accept="image/*" style="display:none;">
+                            </div>
+                        </div>
+                        <div class="settings-list-item" id="btn-bg-clear" style="cursor: pointer; display: none;">
+                            <div class="settings-icon-box" style="background: #fef2f2; color: #ef4444;">🗑️</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title" style="color: #ef4444;">背景をクリア</span>
+                                <span class="settings-item-subtitle">元の背景色に戻す</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="settings-list-item" id="btn-bg-clear" style="cursor: pointer; display: none;">
-                        <div class="settings-icon-box" style="background: #fef2f2; color: #ef4444;">🗑️</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title" style="color: #ef4444;">背景をクリア</span>
-                            <span class="settings-item-subtitle">元の背景色に戻す</span>
-                        </div>
-                    </div>
-                </div>
+                </details>
 
-                <div class="settings-section-header">アプリ内設定</div>
-                <div class="settings-list-group">
-                    <div class="settings-list-item" onclick="Settings.showCalendarSubSettings(true)" style="cursor: pointer;">
-                        <div class="settings-icon-box" style="background: #e0f2fe; color: #0284c7;">📅</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title">カレンダー</span>
-                            <span class="settings-item-subtitle">表示時間などの詳細設定</span>
+                <details class="settings-accordion">
+                    <summary class="settings-section-header accordion-summary">
+                        アプリ詳細設定
+                        <span class="accordion-icon">▼</span>
+                    </summary>
+                    <div class="settings-list-group">
+                        <div class="settings-list-item" onclick="Settings.showCalendarSubSettings(true)" style="cursor: pointer;">
+                            <div class="settings-icon-box" style="background: #e0f2fe; color: #0284c7;">📅</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">カレンダー・時給設定</span>
+                                <span class="settings-item-subtitle">表示時間や給料計算など</span>
+                            </div>
+                            <span class="settings-item-action">❯</span>
                         </div>
-                        <span class="settings-item-action">❯</span>
                     </div>
-                </div>
+                </details>
 
-                <div class="settings-section-header">表示タブ設定</div>
-                <div class="settings-list-group">
-                    <div class="settings-list-item">
-                        <div class="settings-icon-box" style="background: #f0fdf4; color: #16a34a;">💰</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title">収支</span>
+                <details class="settings-accordion">
+                    <summary class="settings-section-header accordion-summary">
+                        表示タブ設定
+                        <span class="accordion-icon">▼</span>
+                    </summary>
+                    <div class="settings-list-group" id="nav-toggles-list">
+                        <!-- Note: standard tabs toggles will remain, we add custom tab manager below -->
+                        <div class="settings-list-item">
+                            <div class="settings-icon-box" style="background: #f0fdf4; color: #16a34a;">💰</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">収支</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-finance" checked>
+                                <span class="slider"></span>
+                            </label>
                         </div>
-                        <label class="switch">
-                            <input type="checkbox" id="toggle-finance" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <!-- ... other items ... -->
-                    <div class="settings-list-item">
-                        <div class="settings-icon-box" style="background: #fefce8; color: #ca8a04;">🏠</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title">家計簿</span>
+                        <div class="settings-list-item">
+                            <div class="settings-icon-box" style="background: #fefce8; color: #ca8a04;">🏠</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">家計簿</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-kakeibo" checked>
+                                <span class="slider"></span>
+                            </label>
                         </div>
-                        <label class="switch">
-                            <input type="checkbox" id="toggle-kakeibo" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="settings-list-item">
-                        <div class="settings-icon-box" style="background: #fef2f2; color: #dc2626;">📖</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title">帳簿</span>
+                        <div class="settings-list-item">
+                            <div class="settings-icon-box" style="background: #fef2f2; color: #dc2626;">📖</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">帳簿</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-bookkeeping" checked>
+                                <span class="slider"></span>
+                            </label>
                         </div>
-                        <label class="switch">
-                            <input type="checkbox" id="toggle-bookkeeping" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="settings-list-item">
-                        <div class="settings-icon-box" style="background: #faf5ff; color: #9333ea;">📌</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title">付箋</span>
+                        <div class="settings-list-item">
+                            <div class="settings-icon-box" style="background: #faf5ff; color: #9333ea;">📌</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">付箋</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-notes" checked>
+                                <span class="slider"></span>
+                            </label>
                         </div>
-                        <label class="switch">
-                            <input type="checkbox" id="toggle-notes" checked>
-                            <span class="slider"></span>
-                        </label>
+                        <div class="settings-list-item">
+                            <div class="settings-icon-box" style="background: #eef2ff; color: #4f46e5;">📤</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">共有</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-share" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
                     </div>
-                </div>
+                </details>
+
+                <details class="settings-accordion">
+                    <summary class="settings-section-header accordion-summary">
+                        カスタムタブの管理
+                        <span class="accordion-icon">▼</span>
+                    </summary>
+                    <div style="text-align: right; margin-bottom: 0.5rem; padding: 0 0.5rem;">
+                        <button type="button" class="btn btn-primary" style="padding: 4px 12px; font-size: 0.8rem;" onclick="document.getElementById('custom-tab-modal').showModal()">+ 新規追加</button>
+                    </div>
+                    <div class="settings-list-group" id="custom-tabs-settings-list" style="margin-top: 0;">
+                        <!-- Generated dynamically by customTabs.js -->
+                    </div>
+                </details>
 
                 <div style="text-align: center; margin-top: 2rem; color: #94a3b8; font-size: 0.8rem;">
                     Version 1.0.1
@@ -379,48 +482,58 @@
                     <h2 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #1e293b; flex: 1; text-align: center; margin-right: 2.5rem;">カレンダー設定</h2>
                 </div>
 
-                <div class="settings-section-header">表示時間設定</div>
-                <div class="settings-list-group">
-                    <div class="settings-list-item">
-                        <div class="settings-icon-box" style="background: #e0f2fe; color: #0284c7;">🌅</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title">開始時間</span>
+                <details class="settings-accordion">
+                    <summary class="settings-section-header accordion-summary">
+                        表示時間設定
+                        <span class="accordion-icon">▼</span>
+                    </summary>
+                    <div class="settings-list-group">
+                        <div class="settings-list-item">
+                            <div class="settings-icon-box" style="background: #e0f2fe; color: #0284c7;">🌅</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">開始時間</span>
+                            </div>
+                            <input type="number" id="setting-calendar-start" class="settings-input-inline" min="0" max="23" value="5">
+                            <span style="font-size: 0.8rem; margin-left: 4px;">時</span>
                         </div>
-                        <input type="number" id="setting-calendar-start" class="settings-input-inline" min="0" max="23" value="5">
-                        <span style="font-size: 0.8rem; margin-left: 4px;">時</span>
-                    </div>
-                    <div class="settings-list-item">
-                        <div class="settings-icon-box" style="background: #e0f2fe; color: #0284c7;">🌃</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title">終了時間</span>
+                        <div class="settings-list-item">
+                            <div class="settings-icon-box" style="background: #e0f2fe; color: #0284c7;">🌃</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">終了時間</span>
+                            </div>
+                            <input type="number" id="setting-calendar-end" class="settings-input-inline" min="0" max="24" value="24">
+                            <span style="font-size: 0.8rem; margin-left: 4px;">時</span>
                         </div>
-                        <input type="number" id="setting-calendar-end" class="settings-input-inline" min="0" max="24" value="24">
-                        <span style="font-size: 0.8rem; margin-left: 4px;">時</span>
                     </div>
-                </div>
+                </details>
 
-                <div class="settings-section-header">バイト関連設定</div>
-                <div class="settings-list-group">
-                    <div class="settings-list-item">
-                        <div class="settings-icon-box" style="background: #fdf4ff; color: #c026d3;">💴</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title">給料シミュレーション</span>
-                            <span class="settings-item-subtitle" style="font-size:0.75rem;">カレンダー下に予想給料を表示</span>
+                <details class="settings-accordion">
+                    <summary class="settings-section-header accordion-summary">
+                        バイト関連設定
+                        <span class="accordion-icon">▼</span>
+                    </summary>
+                    <div class="settings-list-group">
+                        <div class="settings-list-item">
+                            <div class="settings-icon-box" style="background: #fdf4ff; color: #c026d3;">💴</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">給料シミュレーション</span>
+                                <span class="settings-item-subtitle" style="font-size:0.75rem;">カレンダー下に予想給料を表示</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-shift-salary">
+                                <span class="slider"></span>
+                            </label>
                         </div>
-                        <label class="switch">
-                            <input type="checkbox" id="toggle-shift-salary">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="settings-list-item" id="setting-hourly-wage-container" style="display: none;">
-                        <div class="settings-icon-box" style="background: #fefce8; color: #eab308;">⏱️</div>
-                        <div class="settings-item-content">
-                            <span class="settings-item-title">時給設定</span>
+                        <div class="settings-list-item" id="setting-hourly-wage-container" style="display: none;">
+                            <div class="settings-icon-box" style="background: #fefce8; color: #eab308;">⏱️</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">時給設定</span>
+                            </div>
+                            <input type="number" id="setting-hourly-wage" class="settings-input-inline" min="0" value="1000" style="width: 80px;">
+                            <span style="font-size: 0.8rem; margin-left: 4px;">円</span>
                         </div>
-                        <input type="number" id="setting-hourly-wage" class="settings-input-inline" min="0" value="1000" style="width: 80px;">
-                        <span style="font-size: 0.8rem; margin-left: 4px;">円</span>
                     </div>
-                </div>
+                </details>
 
                 <p style="padding: 0 1rem; font-size: 0.85rem; color: #64748b; line-height: 1.4;">
                     ※設定した時間外の予定は表示されませんのでご注意ください。
@@ -497,7 +610,52 @@
         </div>
     </dialog>
 
-    <nav class="bottom-nav">
+    <!-- Custom Tab Create Modal -->
+    <dialog id="custom-tab-modal" class="modal">
+        <form method="dialog" id="custom-tab-form">
+            <header class="modal-header">
+                <div class="modal-header-content">
+                    <h2 style="margin: 0; font-size: 1.1rem;">カスタムタブ作成</h2>
+                    <button type="button" class="close-btn" onclick="document.getElementById('custom-tab-modal').close()">✕</button>
+                </div>
+            </header>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>タブ名</label>
+                    <input type="text" id="ct-modal-title" required placeholder="例: 読書記録">
+                </div>
+                <div class="form-group">
+                    <label>テンプレート機能</label>
+                    <select id="ct-modal-template" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-light);">
+                        <option value="memo">📝 メモ (単一テキスト)</option>
+                        <option value="checklist">✅ チェックリスト (ToDoなど)</option>
+                        <option value="datelog">📅 日付ログ (毎日の記録)</option>
+                        <option value="table">📊 カスタム表 (自分で列追加)</option>
+                        <option value="chart">📈 数値グラフ (体重などの推移)</option>
+                        <option value="link" style="color: #2563eb;">🔗 リンク集 (よく使うサイトや動画)</option>
+                        <option value="counter" style="color: #059669;">🔄 カウンター・習慣 (回数を数える)</option>
+                        <option value="gallery" style="color: #db2777;">🖼️ 画像ギャラリー (写真とメモ)</option>
+                        <option value="review" style="color: #d97706;">⭐ 星評価つき記録 (読書・映画など)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>アイコン (絵文字)</label>
+                    <input type="text" id="ct-modal-icon" required value="⭐" style="width: 60px; text-align: center;">
+                </div>
+                <div class="form-group">
+                    <label>テーマカラー</label>
+                    <input type="color" id="ct-modal-color" value="#4f46e5" style="width: 100%; height: 40px; border: none; border-radius: 8px; padding: 0;">
+                </div>
+            </div>
+            <footer class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('custom-tab-modal').close()">キャンセル</button>
+                <button type="submit" class="btn btn-primary" id="ct-modal-save">作成</button>
+            </footer>
+        </form>
+    </dialog>
+
+    <nav class="bottom-nav" id="main-bottom-nav">
+        <!-- Default items -->
         <button type="button" class="nav-item active" id="btn-view-list">
             <span class="nav-icon">📝</span>
             <span class="nav-label">リスト</span>
@@ -521,6 +679,10 @@
         <button type="button" class="nav-item" id="btn-notes">
             <span class="nav-icon">📌</span>
             <span class="nav-label">付箋</span>
+        </button>
+        <button type="button" class="nav-item" id="btn-share">
+            <span class="nav-icon">📤</span>
+            <span class="nav-label">共有</span>
         </button>
         <button type="button" class="nav-item" id="btn-settings">
             <span class="nav-icon">⚙️</span>

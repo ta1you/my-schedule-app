@@ -1,4 +1,5 @@
 import { SafeStorage } from './utils.js';
+import { CalendarSync } from './calendarSync.js';
 
 export const Settings = {
     // Default preferences
@@ -13,7 +14,9 @@ export const Settings = {
         calendarEnd: 24,
         backgroundImage: null,
         showShiftSalary: false,
-        hourlyWage: 1000
+        hourlyWage: 1000,
+        syncAlertTime: 10,
+        showShare: true
     },
 
     // Current preferences
@@ -118,6 +121,8 @@ export const Settings = {
         const toggleShiftSalary = document.getElementById('toggle-shift-salary');
         const hourlyWageInput = document.getElementById('setting-hourly-wage');
         const hourlyWageContainer = document.getElementById('setting-hourly-wage-container');
+        const syncAlertInput = document.getElementById('setting-sync-alert');
+        const toggleShare = document.getElementById('toggle-share');
 
         if (toggleFinance) toggleFinance.checked = this.prefs.showFinance;
         if (toggleKakeibo) toggleKakeibo.checked = this.prefs.showKakeibo;
@@ -130,6 +135,8 @@ export const Settings = {
         if (toggleShiftSalary) toggleShiftSalary.checked = this.prefs.showShiftSalary;
         if (hourlyWageInput) hourlyWageInput.value = this.prefs.hourlyWage;
         if (hourlyWageContainer) hourlyWageContainer.style.display = this.prefs.showShiftSalary ? 'flex' : 'none';
+        if (syncAlertInput) syncAlertInput.value = this.prefs.syncAlertTime !== undefined ? this.prefs.syncAlertTime : 10;
+        if (toggleShare) toggleShare.checked = this.prefs.showShare !== false;
     },
 
     // Apply settings
@@ -138,11 +145,13 @@ export const Settings = {
         const btnKakeibo = document.getElementById('btn-kakeibo');
         const btnBookkeeping = document.getElementById('btn-bookkeeping');
         const btnNotes = document.getElementById('btn-notes');
+        const btnShare = document.getElementById('btn-share');
 
         if (btnFinance) btnFinance.style.display = this.prefs.showFinance ? '' : 'none';
         if (btnKakeibo) btnKakeibo.style.display = this.prefs.showKakeibo ? '' : 'none';
         if (btnBookkeeping) btnBookkeeping.style.display = this.prefs.showBookkeeping ? '' : 'none';
         if (btnNotes) btnNotes.style.display = this.prefs.showNotes ? '' : 'none';
+        if (btnShare) btnShare.style.display = this.prefs.showShare !== false ? '' : 'none';
 
         if (this.prefs.backgroundImage) {
             document.body.style.setProperty('--bg-image', `url(${this.prefs.backgroundImage})`);
@@ -172,11 +181,15 @@ export const Settings = {
         const calEnd = document.getElementById('setting-calendar-end');
         const tShiftSalary = document.getElementById('toggle-shift-salary');
         const hwInput = document.getElementById('setting-hourly-wage');
+        const syncAlertInput = document.getElementById('setting-sync-alert');
+        const tShare = document.getElementById('toggle-share');
         
         const btnExport = document.getElementById('btn-export-backup');
         const fileInput = document.getElementById('backup-file-input');
+        const btnSyncCalendar = document.getElementById('btn-sync-calendar');
 
         if (btnExport) btnExport.addEventListener('click', () => this.exportData());
+        if (btnSyncCalendar) btnSyncCalendar.addEventListener('click', () => CalendarSync.downloadICS(this.prefs.syncAlertTime !== undefined ? this.prefs.syncAlertTime : 10));
         if (fileInput) fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
                 if (confirm('現在のデータは上書きされます。復元しますか？')) {
@@ -190,6 +203,7 @@ export const Settings = {
         if (tKakeibo) tKakeibo.addEventListener('change', (e) => { this.prefs.showKakeibo = e.target.checked; this.save(); });
         if (tBookkeeping) tBookkeeping.addEventListener('change', (e) => { this.prefs.showBookkeeping = e.target.checked; this.save(); });
         if (tNotes) tNotes.addEventListener('change', (e) => { this.prefs.showNotes = e.target.checked; this.save(); });
+        if (tShare) tShare.addEventListener('change', (e) => { this.prefs.showShare = e.target.checked; this.save(); });
         
         if (calStart) {
             calStart.addEventListener('change', (e) => {
@@ -215,6 +229,13 @@ export const Settings = {
         if (hwInput) {
             hwInput.addEventListener('change', (e) => {
                 this.prefs.hourlyWage = parseInt(e.target.value) || 1000;
+                this.save();
+            });
+        }
+        
+        if (syncAlertInput) {
+            syncAlertInput.addEventListener('change', (e) => {
+                this.prefs.syncAlertTime = parseInt(e.target.value);
                 this.save();
             });
         }

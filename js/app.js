@@ -7,6 +7,8 @@ import { Kakeibo } from './kakeibo.js';
 import { Bookkeeping } from './bookkeeping.js';
 import { Notes } from './notes.js';
 import { Settings } from './settings.js';
+import { CustomTabs } from './customTabs.js';
+import { ShareFeature } from './share.js';
 
 // const CalendarTest = new CalendarInstance('calendar-test-view'); // Removed
 
@@ -62,7 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
     Notes.init(() => {
         if (window.renderNotesView) window.renderNotesView();
     });
+    ShareFeature.init();
 
+    // CustomTabs setup happens in setupEventListeners where setView is accessible
+    
     Storage.init(() => {
         UI.render();
         Calendar.refresh();
@@ -114,14 +119,14 @@ function setupEventListeners() {
     const btnFinance = document.getElementById('btn-finance');
     const btnKakeibo = document.getElementById('btn-kakeibo'); // New button
     const btnBookkeeping = document.getElementById('btn-bookkeeping');
-    // const btnCalendarTest = document.getElementById('btn-view-calendar-test'); // Removed
+    const btnShare = document.getElementById('btn-share');
     const btnSettings = document.getElementById('btn-settings');
     const listView = document.getElementById('schedule-list');
     const calendarView = document.getElementById('calendar-view');
     const financeView = document.getElementById('finance-view');
     const kakeiboView = document.getElementById('kakeibo-view'); // New view
     const bookkeepingView = document.getElementById('bookkeeping-view');
-    // const calendarTestView = document.getElementById('calendar-test-view'); // Removed
+    const shareView = document.getElementById('share-view');
     const settingsView = document.getElementById('settings-view');
 
     // Helper to set view state; uses both attribute and fallback class for robustness
@@ -135,14 +140,21 @@ function setupEventListeners() {
         if (financeView) financeView.hidden = true;
         if (kakeiboView) kakeiboView.hidden = true;
         if (bookkeepingView) bookkeepingView.hidden = true;
-        // if (calendarTestView) calendarTestView.hidden = true; // Removed
         const notesView = document.getElementById('notes-view');
         if (notesView) notesView.hidden = true;
-        if (settingsView) settingsView.hidden = true;
+        if (shareView) shareView.hidden = true;
+        const settingsView = document.getElementById('settings-view');
+        const customTabView = document.getElementById('custom-tab-view');
 
         listView.style.display = 'none';
         calendarView.style.display = 'none';
         if (settingsView) settingsView.style.display = 'none';
+        if (shareView) shareView.style.display = 'none';
+        
+        if (customTabView) {
+            customTabView.hidden = true;
+            customTabView.style.display = 'none';
+        }
 
         // Deactivate all buttons
         btnList.classList.remove('active');
@@ -150,10 +162,11 @@ function setupEventListeners() {
         if (btnFinance) btnFinance.classList.remove('active');
         if (btnKakeibo) btnKakeibo.classList.remove('active');
         if (btnBookkeeping) btnBookkeeping.classList.remove('active');
-        // if (btnCalendarTest) btnCalendarTest.classList.remove('active'); // Removed
         const btnNotes = document.getElementById('btn-notes');
         if (btnNotes) btnNotes.classList.remove('active');
+        if (btnShare) btnShare.classList.remove('active');
         if (btnSettings) btnSettings.classList.remove('active');
+        document.querySelectorAll('.ct-nav-btn').forEach(b => b.classList.remove('active'));
 
         // Default FAB visibility
         fab.hidden = true;
@@ -229,6 +242,16 @@ function setupEventListeners() {
 
             if (window.renderNotesView) window.renderNotesView();
 
+        } else if (viewName === 'share') {
+            if (shareView) {
+                shareView.hidden = false;
+                shareView.style.display = 'flex';
+            }
+            if (btnShare) btnShare.classList.add('active');
+            if (categoryTabs) categoryTabs.hidden = true;
+
+            if (window.loadShareSettings) window.loadShareSettings();
+
         } else if (viewName === 'settings') {
             if (settingsView) {
                 settingsView.hidden = false;
@@ -236,6 +259,19 @@ function setupEventListeners() {
             }
             if (btnSettings) btnSettings.classList.add('active');
 
+            if (categoryTabs) {
+                categoryTabs.hidden = true;
+                categoryTabs.style.display = 'none';
+            }
+        } else if (viewName.startsWith('custom-')) {
+            if (customTabView) {
+                customTabView.hidden = false;
+                customTabView.style.display = '';
+                if (window.renderCustomTabView) window.renderCustomTabView(viewName);
+            }
+            const activeBtn = document.getElementById(`btn-${viewName}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            
             if (categoryTabs) {
                 categoryTabs.hidden = true;
                 categoryTabs.style.display = 'none';
@@ -254,7 +290,51 @@ function setupEventListeners() {
     // if (btnCalendarTest) btnCalendarTest.addEventListener('click', () => setView('calendar-test')); // Removed
     const btnNotes = document.getElementById('btn-notes');
     if (btnNotes) btnNotes.addEventListener('click', () => setView('notes'));
+    if (btnShare) btnShare.addEventListener('click', () => setView('share'));
     if (btnSettings) btnSettings.addEventListener('click', () => setView('settings'));
+
+    // Initialize custom tabs now that setView is defined
+    CustomTabs.init((tabs) => {
+        document.querySelectorAll('.ct-nav-btn').forEach(b => b.remove());
+        const nav = document.getElementById('main-bottom-nav');
+        if (!nav) return;
+        
+        tabs.forEach(tab => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'nav-item ct-nav-btn';
+            btn.id = `btn-${tab.id}`;
+            btn.innerHTML = `<span class="nav-icon" style="color: ${tab.color}">${tab.icon}</span><span class="nav-label">${tab.title}</span>`;
+            
+            btn.addEventListener('click', () => setView(tab.id));
+            
+            // Insert before the Settings button to keep Settings at the edge
+            // Or just append. Settings is fixed in index.html, let's just insert before btnSettings
+            if (btnSettings) {
+                nav.insertBefore(btn, btnSettings);
+            } else {
+                nav.appendChild(btn);
+            }
+        });
+    });
+
+    const ctModalForm = document.getElementById('custom-tab-form');
+    if (ctModalForm) {
+        ctModalForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('ct-modal-title').value;
+            const template = document.getElementById('ct-modal-template').value;
+            const icon = document.getElementById('ct-modal-icon').value;
+            const color = document.getElementById('ct-modal-color').value;
+            
+            const newId = CustomTabs.addTab(title, template, icon, color);
+            document.getElementById('custom-tab-modal').close();
+            ctModalForm.reset();
+            
+            // After adding, auto navigate to it
+            setView(newId);
+        });
+    }
 
     // Handle finance form submission
     const financeForm = document.getElementById('finance-form');

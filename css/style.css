@@ -1215,6 +1215,50 @@ select:focus {
     letter-spacing: 0.05em;
 }
 
+/* Settings Accordion */
+.settings-accordion {
+    margin-bottom: 1rem;
+}
+
+.settings-section-header.accordion-summary {
+    list-style: none; /* remove native arrow */
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    margin: 0;
+    border-radius: 8px;
+    background: transparent;
+    transition: background 0.2s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.accordion-summary::-webkit-details-marker {
+    display: none;
+}
+
+.accordion-summary:active {
+    background: rgba(0,0,0,0.05);
+}
+
+.accordion-icon {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    transition: transform 0.3s ease;
+}
+
+.settings-accordion[open] .accordion-icon {
+    transform: rotate(180deg);
+}
+
+.settings-accordion[open] .settings-list-group {
+    animation: fadeIn 0.2s ease-out;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+}
+
 .settings-input-inline {
     border: 1px solid #e2e8f0;
     border-radius: 6px;
