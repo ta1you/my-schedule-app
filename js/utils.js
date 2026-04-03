@@ -21,6 +21,20 @@ export function getTodayString() {
     return formatDateForInput(new Date());
 }
 
+export function getContrastYIQ(hexcolor) {
+    if (!hexcolor) return 'var(--text-primary)';
+    if (hexcolor.charAt(0) !== '#') return '#000000';
+    hexcolor = hexcolor.replace('#', '');
+    if (hexcolor.length === 3) {
+        hexcolor = hexcolor.split('').map(c => c + c).join('');
+    }
+    var r = parseInt(hexcolor.substr(0, 2), 16);
+    var g = parseInt(hexcolor.substr(2, 2), 16);
+    var b = parseInt(hexcolor.substr(4, 2), 16);
+    var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? '#000000' : '#ffffff';
+}
+
 export const SafeStorage = {
     getItem(key) {
         let data = localStorage.getItem(key);

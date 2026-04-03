@@ -1,5 +1,5 @@
 import { Storage } from './storage.js';
-import { formatDateForInput } from './utils.js';
+import { formatDateForInput, getContrastYIQ, getTodayString } from './utils.js';
 import { Settings } from './settings.js';
 
 export class CalendarInstance {
@@ -161,6 +161,10 @@ export class CalendarInstance {
         if (Settings.prefs.showShiftSalary) {
             this.renderShiftSalarySummary();
         }
+
+        if (Settings.prefs.showTodaySchedule !== false) {
+            this.renderTodaySchedule();
+        }
     }
 
     updateHeaderLabel() {
@@ -260,13 +264,18 @@ export class CalendarInstance {
             if (daySchedules.length > 0) {
                 const envs = document.createElement('div');
                 envs.className = 'day-events';
-                daySchedules.slice(0, 3).forEach(s => {
+                daySchedules.forEach(s => {
                     const dot = document.createElement('div');
                     dot.className = `event-dot type-${s.category || 'その他'}`;
                     dot.textContent = s.title;
+                    if (s.customColor) {
+                        dot.style.backgroundColor = s.customColor;
+                        dot.style.color = getContrastYIQ(s.customColor);
+                    }
                     dot.onclick = (e) => { e.stopPropagation(); window.openEditModal(s.id); };
                     envs.appendChild(dot);
                 });
+                
                 cell.appendChild(envs);
             }
 
@@ -359,6 +368,11 @@ export class CalendarInstance {
                     }
                     block.style.height = `${height}px`;
                     block.innerHTML = `<span class="event-time">${s.startTime}</span>${s.title}`;
+                    
+                    if (s.customColor) {
+                        block.style.backgroundColor = s.customColor;
+                        block.style.color = getContrastYIQ(s.customColor);
+                    }
 
                     // Click to edit, but distinguish from drag
                     let isDragging = false;
@@ -513,6 +527,70 @@ export class CalendarInstance {
         summaryCard.appendChild(salaryDiv);
         
         this.container.appendChild(summaryCard);
+    }
+    
+    renderTodaySchedule() {
+        if (!this.container) return;
+        
+        const card = document.createElement('div');
+        card.className = 'today-schedule-container';
+        
+        const header = document.createElement('h3');
+        header.className = 'today-schedule-header';
+        header.textContent = '今日の予定';
+        card.appendChild(header);
+
+        const list = document.createElement('div');
+        list.className = 'today-schedule-list';
+
+        const todayStr = getTodayString();
+        const schedules = Storage.getAll().filter(s => s.date === todayStr);
+
+        schedules.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+
+        if (schedules.length === 0) {
+            list.innerHTML = `<div style="text-align: center; color: var(--text-tertiary); padding: 1rem 0;">予定なし</div>`;
+        } else {
+            schedules.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'today-schedule-item';
+                
+                let timeStr = s.startTime || '終日';
+                if (s.startTime && s.endTime) timeStr = `${s.startTime}〜${s.endTime}`;
+                
+                const timeEl = document.createElement('div');
+                timeEl.className = 'time';
+                timeEl.textContent = timeStr;
+                
+                const titleEl = document.createElement('div');
+                titleEl.className = 'title';
+                titleEl.textContent = s.title;
+
+                item.appendChild(timeEl);
+                item.appendChild(titleEl);
+                
+                const CATEGORY_COLORS = {
+                    '勉強': '#3b82f6',
+                    'バイト': '#8b5cf6',
+                    '学校': '#10b981',
+                    '予定': '#10b981',
+                    '遊び': '#f59e0b',
+                    'その他': '#64748b'
+                };
+                
+                if (s.customColor) {
+                    item.style.borderLeftColor = s.customColor;
+                } else {
+                    item.style.borderLeftColor = CATEGORY_COLORS[s.category] || CATEGORY_COLORS['その他'];
+                }
+
+                item.onclick = () => window.openEditModal(s.id);
+                list.appendChild(item);
+            });
+        }
+        
+        card.appendChild(list);
+        this.container.appendChild(card);
     }
 }
 

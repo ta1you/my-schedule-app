@@ -445,6 +445,7 @@ body.has-wallpaper .bottom-nav {
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 4px;
+    white-space: pre-wrap;
 }
 
 .schedule-desc {
@@ -712,6 +713,7 @@ body.has-wallpaper .bottom-nav {
     touch-action: none;
     /* Prevent scrolling while dragging */
     user-select: none;
+    white-space: pre-wrap;
 }
 
 .weekly-event-block:active {
@@ -842,12 +844,13 @@ body.has-wallpaper .bottom-nav {
     font-size: 0.7rem;
     border-radius: 4px;
     padding: 2px 4px;
-    white-space: nowrap;
+    white-space: pre-wrap;
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: clip; /* clip text instead of ellipsis if it wraps */
     background: var(--primary-color);
     color: white;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .event-dot.type-バイト {
@@ -1381,11 +1384,11 @@ select:focus {
 }
 
 /* Category Colors - Always white text for visibility on solid backgrounds */
-.category-勉強, .type-勉強 { background-color: #3b82f6 !important; color: #fff !important; } /* Blue */
-.category-バイト, .type-バイト { background-color: #8b5cf6 !important; color: #fff !important; } /* Purple */
-.category-学校, .type-学校, .category-予定, .type-予定 { background-color: #10b981 !important; color: #fff !important; } /* Green */
-.category-遊び, .type-遊び { background-color: #f59e0b !important; color: #fff !important; } /* Orange */
-.category-その他, .type-その他 { background-color: #64748b !important; color: #fff !important; } /* Slate */
+.category-勉強, .type-勉強 { background-color: #3b82f6; color: #fff; } /* Blue */
+.category-バイト, .type-バイト { background-color: #8b5cf6; color: #fff; } /* Purple */
+.category-学校, .type-学校, .category-予定, .type-予定 { background-color: #10b981; color: #fff; } /* Green */
+.category-遊び, .type-遊び { background-color: #f59e0b; color: #fff; } /* Orange */
+.category-その他, .type-その他 { background-color: #64748b; color: #fff; } /* Slate */
 
 /* In list view, add a color bar to the left */
 .schedule-item-inner {
@@ -1950,4 +1953,66 @@ input:checked+.slider:before {
     font-size: 40px;
     font-weight: bold;
     cursor: pointer;
+}
+
+/* Additional features styles */
+.schedule-title, .event-dot, .weekly-event-block { 
+    white-space: pre-line; 
+}
+
+.today-schedule-container { 
+    margin: 1rem; 
+    padding: 1rem; 
+    border-radius: 12px; 
+    background: rgba(255, 255, 255, 0.45); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px); 
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1); 
+    border: 1px solid rgba(255, 255, 255, 0.4); 
+}
+
+.today-schedule-header { 
+    font-size: 1.1rem; 
+    font-weight: 800; 
+    color: var(--text-primary); 
+    margin: 0 0 0.75rem 0; 
+    padding-bottom: 0.5rem; 
+    border-bottom: 1px solid var(--border-light); 
+}
+
+.today-schedule-item { 
+    display: flex; 
+    align-items: flex-start; 
+    padding: 0.75rem; 
+    margin-bottom: 0.5rem; 
+    background: var(--bg-surface); 
+    border-radius: 8px; 
+    box-shadow: var(--shadow-sm); 
+    border-left: 4px solid var(--text-tertiary); 
+    cursor: pointer; 
+    transition: transform 0.1s; 
+}
+
+.today-schedule-item:active { 
+    transform: scale(0.98); 
+}
+
+.today-schedule-item:last-child { 
+    margin-bottom: 0; 
+}
+
+.today-schedule-item .time { 
+    font-size: 0.75rem; 
+    font-weight: 700; 
+    color: var(--text-secondary); 
+    min-width: 60px; 
+    margin-right: 0.5rem; 
+    margin-top: 2px; 
+}
+
+.today-schedule-item .title { 
+    font-size: 0.95rem; 
+    font-weight: 600; 
+    color: var(--text-primary); 
+    white-space: pre-line; 
 }

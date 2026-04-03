@@ -484,6 +484,17 @@ function setupEventListeners() {
         }
     });
 
+    // Preset color buttons
+    document.querySelectorAll('.color-preset-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const color = e.target.dataset.color;
+            const colorInput = document.getElementById('custom-color');
+            if (colorInput) {
+                colorInput.value = color;
+            }
+        });
+    });
+
     // Close Modal
     const closeModal = () => modal.close();
     closeBtn.addEventListener('click', closeModal);
@@ -494,14 +505,21 @@ function setupEventListeners() {
         e.preventDefault();
         const formData = new FormData(form);
         const scheduleId = formData.get('id') || generateId();
+        
+        const rawTitle = formData.get('title') || '';
+        
+        // Custom color
+        const customColor = formData.get('custom-color') || '#6366f1';
+
         const schedule = {
             id: scheduleId,
-            title: formData.get('title'),
+            title: rawTitle,
             date: formData.get('date'),
             startTime: formData.get('start-time'),
             endTime: formData.get('end-time'),
             description: formData.get('description'),
             category: selectedCategory,
+            customColor: customColor,
             createdAt: new Date().toISOString()
         };
 
@@ -534,6 +552,11 @@ function setupEventListeners() {
         document.getElementById('start-time').value = schedule.startTime || '';
         document.getElementById('end-time').value = schedule.endTime || '';
         document.getElementById('description').value = schedule.description || '';
+        
+        const colorInput = document.getElementById('custom-color');
+        if (colorInput) {
+            colorInput.value = schedule.customColor || '#6366f1';
+        }
 
         // Set category
         selectedCategory = schedule.category || 'その他';

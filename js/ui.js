@@ -161,6 +161,21 @@ export const UI = {
             el.dataset.id = sid;
             const category = schedule.category || 'その他';
             el.dataset.category = category;
+            
+            const CATEGORY_COLORS = {
+                '勉強': '#3b82f6',
+                'バイト': '#8b5cf6',
+                '学校': '#10b981',
+                '予定': '#10b981',
+                '遊び': '#f59e0b',
+                'その他': '#64748b'
+            };
+            
+            if (schedule.customColor) {
+                el.style.borderLeftColor = schedule.customColor;
+            } else {
+                el.style.borderLeftColor = CATEGORY_COLORS[category] || CATEGORY_COLORS['その他'];
+            }
 
             let timeStr = schedule.startTime || '終日';
             if (schedule.startTime && schedule.endTime) timeStr = `${schedule.startTime}〜${schedule.endTime}`;

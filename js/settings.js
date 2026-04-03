@@ -16,7 +16,8 @@ export const Settings = {
         showShiftSalary: false,
         hourlyWage: 1000,
         syncAlertTime: 10,
-        showShare: true
+        showShare: true,
+        showTodaySchedule: true
     },
 
     // Current preferences
@@ -134,6 +135,7 @@ export const Settings = {
         const hourlyWageContainer = document.getElementById('setting-hourly-wage-container');
         const syncAlertInput = document.getElementById('setting-sync-alert');
         const toggleShare = document.getElementById('toggle-share');
+        const toggleTodaySchedule = document.getElementById('toggle-today-schedule');
 
         if (toggleFinance) toggleFinance.checked = this.prefs.showFinance;
         if (toggleKakeibo) toggleKakeibo.checked = this.prefs.showKakeibo;
@@ -148,6 +150,7 @@ export const Settings = {
         if (hourlyWageContainer) hourlyWageContainer.style.display = this.prefs.showShiftSalary ? 'flex' : 'none';
         if (syncAlertInput) syncAlertInput.value = this.prefs.syncAlertTime !== undefined ? this.prefs.syncAlertTime : 10;
         if (toggleShare) toggleShare.checked = this.prefs.showShare !== false;
+        if (toggleTodaySchedule) toggleTodaySchedule.checked = this.prefs.showTodaySchedule !== false;
     },
 
     // Apply settings
@@ -194,6 +197,7 @@ export const Settings = {
         const hwInput = document.getElementById('setting-hourly-wage');
         const syncAlertInput = document.getElementById('setting-sync-alert');
         const tShare = document.getElementById('toggle-share');
+        const tTodaySchedule = document.getElementById('toggle-today-schedule');
         
         const btnExport = document.getElementById('btn-export-backup');
         const fileInput = document.getElementById('backup-file-input');
@@ -215,6 +219,12 @@ export const Settings = {
         if (tBookkeeping) tBookkeeping.addEventListener('change', (e) => { this.prefs.showBookkeeping = e.target.checked; this.save(); });
         if (tNotes) tNotes.addEventListener('change', (e) => { this.prefs.showNotes = e.target.checked; this.save(); });
         if (tShare) tShare.addEventListener('change', (e) => { this.prefs.showShare = e.target.checked; this.save(); });
+        if (tTodaySchedule) {
+            tTodaySchedule.addEventListener('change', (e) => {
+                this.prefs.showTodaySchedule = e.target.checked;
+                this.save();
+            });
+        }
         
         if (calStart) {
             calStart.addEventListener('change', (e) => {

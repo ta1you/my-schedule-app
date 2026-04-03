@@ -510,6 +510,26 @@
 
                 <details class="settings-accordion">
                     <summary class="settings-section-header accordion-summary">
+                        表示設定
+                        <span class="accordion-icon">▼</span>
+                    </summary>
+                    <div class="settings-list-group">
+                        <div class="settings-list-item">
+                            <div class="settings-icon-box" style="background: #eef2ff; color: #4f46e5;">📋</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">今日の予定表示</span>
+                                <span class="settings-item-subtitle" style="font-size:0.75rem;">カレンダー下にリストを表示</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-today-schedule" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="settings-accordion">
+                    <summary class="settings-section-header accordion-summary">
                         バイト関連設定
                         <span class="accordion-icon">▼</span>
                     </summary>
@@ -563,13 +583,7 @@
                 <input type="hidden" name="id">
                 <div class="form-group">
                     <label for="title">タイトル</label>
-                    <input type="text" id="title" name="title" autocomplete="off" list="title-suggestions"
-                        placeholder="タイトルを入力または選択" style="cursor: pointer;">
-                    <datalist id="title-suggestions">
-                        <option value="バイト"></option>
-                        <option value="学校"></option>
-                        <option value="その他"></option>
-                    </datalist>
+                    <textarea id="title" name="title" rows="2" placeholder="タイトルを入力" style="cursor: pointer; resize: vertical;"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="date">日付</label>
@@ -583,6 +597,19 @@
                     <div class="form-group">
                         <label for="end-time">終了</label>
                         <input type="time" id="end-time" name="end-time">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 0.5rem;">
+                    <label>カラー</label>
+                    <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                        <input type="color" id="custom-color" name="custom-color" value="#6366f1" style="width: 32px; height: 32px; border: none; padding: 0; cursor: pointer; border-radius: 4px;">
+                        <div id="color-presets" style="display: flex; gap: 6px;">
+                            <button type="button" class="color-preset-btn" style="background: #ef4444;" data-color="#ef4444"></button>
+                            <button type="button" class="color-preset-btn" style="background: #f59e0b;" data-color="#f59e0b"></button>
+                            <button type="button" class="color-preset-btn" style="background: #22c55e;" data-color="#22c55e"></button>
+                            <button type="button" class="color-preset-btn" style="background: #3b82f6;" data-color="#3b82f6"></button>
+                            <button type="button" class="color-preset-btn" style="background: #8b5cf6;" data-color="#8b5cf6"></button>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
