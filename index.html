@@ -37,6 +37,14 @@
                 <div id="schedule-list" class="schedule-list"></div>
             </div>
             <div id="calendar-view" class="calendar-view" hidden></div>
+            <div id="schedule-import-container" style="display: none; width: 100%; padding: 10px; text-align: center; margin-bottom: 20px; flex-direction: column; gap: 8px; align-items: center;">
+                <button type="button" class="btn btn-secondary" id="btn-show-import" style="width: 100%; max-width: 300px; font-weight: bold; background: white; border: 1px solid var(--border-light);">
+                    📥 定期予定の一括登録
+                </button>
+                <button type="button" class="btn btn-secondary" id="btn-show-bulk-delete" style="width: 100%; max-width: 300px; font-weight: bold; background: white; border: 1px solid var(--border-light); color: #ef4444;">
+                    🗑️ 定期予定の一括削除
+                </button>
+            </div>
             <div id="finance-view" class="finance-view" hidden style="padding:1rem;">
                 <h3 style="margin-top:0; font-size:1rem;">今月の収支</h3>
                 <form id="finance-form"
@@ -525,6 +533,17 @@
                                 <span class="slider"></span>
                             </label>
                         </div>
+                        <div class="settings-list-item">
+                            <div class="settings-icon-box" style="background: #f0fdf4; color: #16a34a;">📥</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">定期予定の一括登録</span>
+                                <span class="settings-item-subtitle" style="font-size:0.75rem;">カレンダー下に一括登録ボタンを表示</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-schedule-import">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </details>
 
@@ -681,6 +700,149 @@
                 <button type="submit" class="btn btn-primary" id="ct-modal-save">作成</button>
             </footer>
         </form>
+    </dialog>
+
+    <!-- Import Method Modal -->
+    <dialog id="import-method-modal" class="modal">
+        <header class="modal-header">
+            <div class="modal-header-content">
+                <h2 style="margin: 0; font-size: 1.1rem;">予定をインポート</h2>
+                <button type="button" class="close-btn" onclick="document.getElementById('import-method-modal').close()">✕</button>
+            </div>
+        </header>
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem;">
+            <button type="button" class="btn btn-primary" id="btn-import-text" style="padding: 1rem; font-size: 1rem;">
+                📅 定期予定の一括登録
+            </button>
+            <button type="button" class="btn btn-secondary" disabled style="padding: 1rem; font-size: 1rem; opacity: 0.6; cursor: not-allowed;">
+                📷 画像から追加 (準備中)
+            </button>
+        </div>
+    </dialog>
+
+    <!-- Import Text Modal (Now Class Builder) -->
+    <dialog id="import-text-modal" class="modal">
+        <header class="modal-header">
+            <div class="modal-header-content">
+                <h2 style="margin: 0; font-size: 1.1rem;">定期予定を一括登録</h2>
+                <button type="button" class="close-btn" onclick="document.getElementById('import-text-modal').close()">✕</button>
+            </div>
+        </header>
+        <div class="modal-body" style="background:#f8fafc; padding:15px; border-bottom: 1px solid var(--border-light);">
+            <form id="import-builder-form" style="display:flex; flex-direction:column; gap:12px; background:white; padding:15px; border-radius:8px; border:1px solid var(--border-light); margin-bottom: 10px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-secondary); font-weight:bold;">期間</label>
+                        <select id="import-repeat-count" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-light); background: #f1f5f9;">
+                            <option value="15">半期 (15週分)</option>
+                            <option value="4">1ヶ月 (4週分)</option>
+                            <option value="1">1回のみ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-secondary); font-weight:bold;">曜日</label>
+                        <select id="import-day-of-week" required style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-light);">
+                            <option value="" disabled selected>選択...</option>
+                            <option value="1">月曜日</option>
+                            <option value="2">火曜日</option>
+                            <option value="3">水曜日</option>
+                            <option value="4">木曜日</option>
+                            <option value="5">金曜日</option>
+                            <option value="6">土曜日</option>
+                            <option value="0">日曜日</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-secondary); font-weight:bold;">タイトル</label>
+                        <input type="text" id="import-title" placeholder="例: 授業 / 通院" required style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-light);">
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-secondary); font-weight:bold;">コメント(詳細・科目名等)</label>
+                        <input type="text" id="import-comment" placeholder="例: キャリアデザイン" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-light);">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-secondary); font-weight:bold;">開始時間</label>
+                        <input type="time" id="import-start-time" required style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-light);">
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-secondary); font-weight:bold;">終了時間</label>
+                        <input type="time" id="import-end-time" placeholder="自動計算" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-light);">
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-import-add-item" class="btn btn-primary" style="margin-top:5px; padding:10px; font-weight:bold;">
+                    ＋ リストに追加する
+                </button>
+            </form>
+            
+            <div style="margin-top: 5px;">
+                <h4 style="margin:0 0 8px 0; font-size:0.95rem; color:var(--text-primary);">追加予定リスト</h4>
+                <div id="import-preview-list" style="background:#f1f5f9; border: 1px dashed var(--border-light); border-radius: 8px; padding: 10px; min-height: 80px; max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                    <p id="import-empty-message" style="color:var(--text-secondary); font-size:0.85rem; text-align:center; margin:20px 0;">まだ追加されていません<br>上のフォームから「リストに追加」してください</p>
+                </div>
+            </div>
+        </div>
+        <footer class="modal-footer">
+            <button type="button" class="btn btn-danger" id="btn-import-clear-list" style="display:none; padding: 4px 8px; font-size: 0.8rem;">全てクリア</button>
+            <div class="spacer"></div>
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('import-text-modal').close(); document.getElementById('import-method-modal').showModal();">戻る</button>
+            <button type="button" class="btn btn-primary" id="btn-import-execute" disabled>すべて登録する</button>
+        </footer>
+    </dialog>
+
+    <!-- Import Confirm Modal is now removed/hidden since it's merged -->
+
+    <!-- Bulk Delete Modal -->
+    <dialog id="bulk-delete-modal" class="modal">
+        <header class="modal-header">
+            <div class="modal-header-content">
+                <h2 style="margin: 0; font-size: 1.1rem; color:#ef4444;">定期予定の一括削除</h2>
+                <button type="button" class="close-btn" onclick="document.getElementById('bulk-delete-modal').close()">✕</button>
+            </div>
+        </header>
+        <div class="modal-body" style="background:#f8fafc; padding:15px;">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4;">
+                間違えて登録してしまった予定などを一括で削除します。条件を指定して「検索する」を押してください。
+            </p>
+            <form id="bulk-delete-form" style="display:flex; flex-direction:column; gap:12px; background:white; padding:15px; border-radius:8px; border:1px solid var(--border-light);">
+                <div>
+                    <label style="font-size:0.8rem; color:var(--text-secondary); font-weight:bold;">削除する曜日</label>
+                    <select id="bulk-delete-day" required style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-light); margin-top:5px;">
+                        <option value="" disabled selected>選択...</option>
+                        <option value="1">月曜日</option>
+                        <option value="2">火曜日</option>
+                        <option value="3">水曜日</option>
+                        <option value="4">木曜日</option>
+                        <option value="5">金曜日</option>
+                        <option value="6">土曜日</option>
+                        <option value="0">日曜日</option>
+                        <option value="all">すべての曜日（危険）</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.8rem; color:var(--text-secondary); font-weight:bold;">対象のタイトル（キーワード）</label>
+                    <input type="text" id="bulk-delete-keyword" placeholder="例: 授業、病院 など（空欄ですべて対象）" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-light); margin-top:5px;">
+                </div>
+                <button type="submit" class="btn btn-secondary" style="margin-top:10px; font-weight:bold;">🔍 対象を検索する</button>
+            </form>
+
+            <div style="margin-top:15px;">
+                <p id="bulk-delete-result-msg" style="font-size:0.85rem; font-weight:bold; color:var(--text-primary); margin-bottom:5px; display:none;"></p>
+                <div id="bulk-delete-preview-list" style="background:#fee2e2; border: 1px dashed #fca5a5; border-radius: 8px; padding: 10px; max-height: 150px; overflow-y: auto; display: none; flex-direction: column; gap: 6px;">
+                    <!-- Preview items handled by js -->
+                </div>
+            </div>
+        </div>
+        <footer class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('bulk-delete-modal').close();">キャンセル</button>
+            <button type="button" class="btn btn-danger" id="btn-bulk-delete-execute" disabled>削除を実行する</button>
+        </footer>
     </dialog>
 
     <nav class="bottom-nav" id="main-bottom-nav">

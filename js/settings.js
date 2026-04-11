@@ -17,7 +17,8 @@ export const Settings = {
         hourlyWage: 1000,
         syncAlertTime: 10,
         showShare: true,
-        showTodaySchedule: true
+        showTodaySchedule: true,
+        showScheduleImport: false
     },
 
     // Current preferences
@@ -136,6 +137,7 @@ export const Settings = {
         const syncAlertInput = document.getElementById('setting-sync-alert');
         const toggleShare = document.getElementById('toggle-share');
         const toggleTodaySchedule = document.getElementById('toggle-today-schedule');
+        const toggleScheduleImport = document.getElementById('toggle-schedule-import');
 
         if (toggleFinance) toggleFinance.checked = this.prefs.showFinance;
         if (toggleKakeibo) toggleKakeibo.checked = this.prefs.showKakeibo;
@@ -151,6 +153,7 @@ export const Settings = {
         if (syncAlertInput) syncAlertInput.value = this.prefs.syncAlertTime !== undefined ? this.prefs.syncAlertTime : 10;
         if (toggleShare) toggleShare.checked = this.prefs.showShare !== false;
         if (toggleTodaySchedule) toggleTodaySchedule.checked = this.prefs.showTodaySchedule !== false;
+        if (toggleScheduleImport) toggleScheduleImport.checked = this.prefs.showScheduleImport === true;
     },
 
     // Apply settings
@@ -179,6 +182,15 @@ export const Settings = {
             if (appEl) appEl.style.backgroundColor = '';
         }
 
+        // Toggle Schedule Import button if calendar view is active
+        const scheduleImportContainer = document.getElementById('schedule-import-container');
+        if (scheduleImportContainer) {
+            // We only show it if calendar is active. Let app.js handle strict view logic, but we can set a data attribute or trigger a view refresh.
+            // A simple refresh is to re-click the active nav button
+            const activeNav = document.querySelector('.nav-item.active');
+            if (activeNav) activeNav.click();
+        }
+
         // Notify Calendar to refresh if it exists
         if (window.Calendar && window.Calendar.refresh) {
             window.Calendar.refresh();
@@ -198,6 +210,7 @@ export const Settings = {
         const syncAlertInput = document.getElementById('setting-sync-alert');
         const tShare = document.getElementById('toggle-share');
         const tTodaySchedule = document.getElementById('toggle-today-schedule');
+        const tScheduleImport = document.getElementById('toggle-schedule-import');
         
         const btnExport = document.getElementById('btn-export-backup');
         const fileInput = document.getElementById('backup-file-input');
@@ -222,6 +235,12 @@ export const Settings = {
         if (tTodaySchedule) {
             tTodaySchedule.addEventListener('change', (e) => {
                 this.prefs.showTodaySchedule = e.target.checked;
+                this.save();
+            });
+        }
+        if (tScheduleImport) {
+            tScheduleImport.addEventListener('change', (e) => {
+                this.prefs.showScheduleImport = e.target.checked;
                 this.save();
             });
         }

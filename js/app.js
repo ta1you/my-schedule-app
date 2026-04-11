@@ -9,9 +9,7 @@ import { Notes } from './notes.js';
 import { Settings } from './settings.js';
 import { CustomTabs } from './customTabs.js';
 import { ShareFeature } from './share.js';
-
-// const CalendarTest = new CalendarInstance('calendar-test-view'); // Removed
-
+import { ScheduleImportManager } from './import.js?v=2';
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
@@ -65,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.renderNotesView) window.renderNotesView();
     });
     ShareFeature.init();
+    ScheduleImportManager.init();
 
     // CustomTabs setup happens in setupEventListeners where setView is accessible
     
@@ -145,6 +144,11 @@ function setupEventListeners() {
         if (shareView) shareView.hidden = true;
         const settingsView = document.getElementById('settings-view');
         const customTabView = document.getElementById('custom-tab-view');
+        const importContainer = document.getElementById('schedule-import-container');
+        
+        if (importContainer) {
+            importContainer.style.display = 'none';
+        }
 
         listView.style.display = 'none';
         calendarView.style.display = 'none';
@@ -198,6 +202,10 @@ function setupEventListeners() {
             if (categoryTabs) {
                 categoryTabs.hidden = true;
                 categoryTabs.style.display = 'none';
+            }
+            
+            if (importContainer && Settings.prefs && Settings.prefs.showScheduleImport) {
+                importContainer.style.display = 'block';
             }
         } else if (viewName === 'finance') {
             if (financeView) financeView.hidden = false;
