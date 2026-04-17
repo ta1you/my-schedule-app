@@ -59,16 +59,58 @@ export const ScheduleImportManager = {
             });
         }
         
-        // Import modal specific color presets
-        document.querySelectorAll('.import-color-preset').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const color = e.target.dataset.color;
-                const colorInput = document.getElementById('import-custom-color');
-                if (colorInput) {
-                    colorInput.value = color;
+        const importDynamicColorContainer = document.getElementById('import-dynamic-color-container');
+
+        if (importDynamicColorContainer) {
+            importDynamicColorContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('import-color-preset')) {
+                    const color = e.target.dataset.color;
+                    const group = e.target.closest('.color-picker-group');
+                    const colorInput = group.querySelector('.import-custom-color-input');
+                    if (colorInput) {
+                        colorInput.value = color;
+                    }
                 }
             });
-        });
+        }
+
+        const importTitleInput = document.getElementById('import-title');
+        if (importTitleInput && importDynamicColorContainer) {
+            function renderImportColorPickers(titles) {
+                const existingInputs = Array.from(importDynamicColorContainer.querySelectorAll('.import-custom-color-input')).map(inp => inp.value);
+                const defaultColor = existingInputs[0] || '#3b82f6';
+                let html = '<label style="font-size:0.8rem; color:var(--text-secondary); font-weight:bold;">カラー</label>';
+                titles.forEach((t, i) => {
+                    const val = existingInputs[i] || defaultColor;
+                    const labelHtml = titles.length > 1 ? `<div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 2px; margin-top: 4px; font-weight: bold;">「${t || '未定'}」:</div>` : '';
+                    html += `
+                    <div class="color-picker-group" data-index="${i}" style="margin-top: ${titles.length > 1 ? '2px' : '4px'}; padding-bottom: ${titles.length > 1 ? '4px' : '0'}; ${titles.length > 1 && i < titles.length - 1 ? 'border-bottom: 1px dashed #e2e8f0;' : ''}">
+                        ${labelHtml}
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="color" name="import-custom-color-${i}" class="import-custom-color-input" value="${val}" style="width: 32px; height: 32px; border: none; padding: 0; cursor: pointer; border-radius: 4px;">
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button" class="color-preset-btn import-color-preset" style="background: #ef4444;" data-color="#ef4444"></button>
+                                <button type="button" class="color-preset-btn import-color-preset" style="background: #f59e0b;" data-color="#f59e0b"></button>
+                                <button type="button" class="color-preset-btn import-color-preset" style="background: #22c55e;" data-color="#22c55e"></button>
+                                <button type="button" class="color-preset-btn import-color-preset" style="background: #3b82f6;" data-color="#3b82f6"></button>
+                                <button type="button" class="color-preset-btn import-color-preset" style="background: #8b5cf6;" data-color="#8b5cf6"></button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                importDynamicColorContainer.innerHTML = html;
+            }
+
+            importTitleInput.addEventListener('input', (e) => {
+                const val = e.target.value;
+                const parts = val.split(/[\s　]+/).filter(t => t.length > 0);
+                if (parts.length === 0) {
+                    renderImportColorPickers(['']);
+                } else {
+                    renderImportColorPickers(parts);
+                }
+            });
+        }
         
         if (btnClear) {
             btnClear.addEventListener('click', () => {
@@ -99,8 +141,6 @@ export const ScheduleImportManager = {
                 }
 
                 const category = '学校'; 
-                const colorInput = document.getElementById('import-custom-color');
-                const customColor = colorInput ? colorInput.value : '#3b82f6';
                 const skipHolidays = document.getElementById('import-skip-holidays') ? document.getElementById('import-skip-holidays').checked : false;
                 
                 const today = new Date();
@@ -134,7 +174,10 @@ export const ScheduleImportManager = {
                         continue;
                     }
 
-                    titles.forEach(t => {
+                    titles.forEach((t, index) => {
+                        const dynamicColorInput = form.querySelector(`input[name="import-custom-color-${index}"]`);
+                        const customColor = dynamicColorInput ? dynamicColorInput.value : '#3b82f6';
+                        
                         groupItems.push({
                             id: generateId(),
                             title: t,

@@ -431,9 +431,45 @@ function setupEventListeners() {
     let selectedCategory = 'その他';
     const titleInput = document.getElementById('title');
 
+    const dynamicColorContainer = document.getElementById('dynamic-color-container');
+    
+    function renderColorPickers(titles) {
+        if (!dynamicColorContainer) return;
+        const existingInputs = Array.from(dynamicColorContainer.querySelectorAll('.custom-color-input')).map(inp => inp.value);
+        const defaultColor = existingInputs[0] || '#6366f1';
+
+        let html = '<label>カラー</label>';
+        titles.forEach((t, i) => {
+            const val = existingInputs[i] || defaultColor;
+            const labelHtml = titles.length > 1 ? `<div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 4px; margin-top: 4px; font-weight: bold;">「${t || '未定'}」のカラー:</div>` : '';
+            html += `
+            <div class="color-picker-group" data-index="${i}" style="margin-top: ${titles.length > 1 ? '4px' : '4px'}; padding-bottom: ${titles.length > 1 ? '8px' : '0'}; ${titles.length > 1 && i < titles.length - 1 ? 'border-bottom: 1px dashed #e2e8f0;' : ''}">
+                ${labelHtml}
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="color" name="custom-color-${i}" class="custom-color-input" value="${val}" style="width: 32px; height: 32px; border: none; padding: 0; cursor: pointer; border-radius: 4px;">
+                    <div class="color-presets" style="display: flex; gap: 6px;">
+                        <button type="button" class="color-preset-btn" style="background: #ef4444;" data-color="#ef4444"></button>
+                        <button type="button" class="color-preset-btn" style="background: #f59e0b;" data-color="#f59e0b"></button>
+                        <button type="button" class="color-preset-btn" style="background: #22c55e;" data-color="#22c55e"></button>
+                        <button type="button" class="color-preset-btn" style="background: #3b82f6;" data-color="#3b82f6"></button>
+                        <button type="button" class="color-preset-btn" style="background: #8b5cf6;" data-color="#8b5cf6"></button>
+                    </div>
+                </div>
+            </div>`;
+        });
+        dynamicColorContainer.innerHTML = html;
+    }
+
     // Auto-select category when title matches options from datalist
     titleInput.addEventListener('input', (e) => {
         const val = e.target.value;
+        const parts = val.split(/[\s　]+/).filter(t => t.length > 0);
+        if (parts.length === 0) {
+            renderColorPickers(['']);
+        } else {
+            renderColorPickers(parts);
+        }
+        
         if (['バイト', '学校', 'その他'].includes(val)) {
             selectedCategory = val;
         }
@@ -443,6 +479,7 @@ function setupEventListeners() {
     fab.addEventListener('click', () => {
         form.reset();
         document.getElementById('date').value = getTodayString();
+        renderColorPickers(['']);
         
         // ユーザー要望：00分から始まるとダイヤル操作が楽
         const now = new Date();
@@ -498,16 +535,18 @@ function setupEventListeners() {
         }
     });
 
-    // Preset color buttons
-    document.querySelectorAll('.color-preset-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const color = e.target.dataset.color;
-            const colorInput = document.getElementById('custom-color');
-            if (colorInput) {
-                colorInput.value = color;
+    if (dynamicColorContainer) {
+        dynamicColorContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('color-preset-btn')) {
+                const color = e.target.dataset.color;
+                const group = e.target.closest('.color-picker-group');
+                const colorInput = group.querySelector('.custom-color-input');
+                if (colorInput) {
+                    colorInput.value = color;
+                }
             }
         });
-    });
+    }
 
     // Close Modal
     const closeModal = () => modal.close();
@@ -529,6 +568,9 @@ function setupEventListeners() {
         if (titles.length === 0) titles.push('');
 
         titles.forEach((titleSegment, index) => {
+            const colorInput = form.querySelector(`input[name="custom-color-${index}"]`);
+            const targetColor = colorInput ? colorInput.value : customColor;
+            
             const schedule = {
                 id: (index === 0 && scheduleIdFromForm) ? scheduleIdFromForm : generateId(),
                 title: titleSegment,
@@ -537,7 +579,7 @@ function setupEventListeners() {
                 endTime: formData.get('end-time'),
                 description: formData.get('description'),
                 category: selectedCategory,
-                customColor: customColor,
+                customColor: targetColor,
                 createdAt: new Date().toISOString()
             };
             Storage.save(schedule);
@@ -572,9 +614,10 @@ function setupEventListeners() {
         document.getElementById('end-time').value = schedule.endTime || '';
         document.getElementById('description').value = schedule.description || '';
         
-        const colorInput = document.getElementById('custom-color');
-        if (colorInput) {
-            colorInput.value = schedule.customColor || '#6366f1';
+        renderColorPickers([schedule.title || '']);
+        const inputs = dynamicColorContainer.querySelectorAll('.custom-color-input');
+        if (inputs.length > 0) {
+            inputs[0].value = schedule.customColor || '#6366f1';
         }
 
         // Set category

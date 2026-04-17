@@ -816,6 +816,8 @@ body.has-wallpaper .bottom-nav {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
 }
 
 .day-cell {
@@ -1420,6 +1422,13 @@ select:focus {
 /* In list view, add a color bar to the left */
 .schedule-item-inner {
     border-left: 5px solid transparent;
+}
+
+.weekly-day-header .holiday-name {
+    flex: none;
+    text-align: center;
+    margin-left: 0;
+    width: 100%;
 }
 
 .schedule-item[data-category="勉強"] .schedule-item-inner { border-left-color: #3b82f6; }
