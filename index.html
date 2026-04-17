@@ -367,6 +367,18 @@
 
                 <details class="settings-accordion">
                     <summary class="settings-section-header accordion-summary">
+                        🔄 過去データから復元（自動表示）
+                        <span class="accordion-icon">▼</span>
+                    </summary>
+                    <div class="settings-list-group" id="auto-backup-list" style="margin-top: 5px;">
+                        <div style="padding: 1rem; text-align: center; color: var(--text-secondary); font-size: 0.85rem;">
+                            自動バックアップの履歴がありません。
+                        </div>
+                    </div>
+                </details>
+
+                <details class="settings-accordion">
+                    <summary class="settings-section-header accordion-summary">
                         外観設定
                         <span class="accordion-icon">▼</span>
                     </summary>
@@ -462,6 +474,47 @@
                                 <input type="checkbox" id="toggle-share" checked>
                                 <span class="slider"></span>
                             </label>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="settings-accordion">
+                    <summary class="settings-section-header accordion-summary">
+                        通知・リマインダー設定
+                        <span class="accordion-icon">▼</span>
+                    </summary>
+                    <div class="settings-list-group">
+                        <div class="settings-list-item">
+                            <div class="settings-icon-box" style="background: #fff8f1; color: #f97316;">🔔</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">プッシュ通知を有効化</span>
+                                <span class="settings-item-subtitle" style="font-size:0.75rem;">※アプリがバックグラウンドにある場合のみ動作</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-push-notifications">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-list-item" id="setting-push-minutes-container" style="display: none;">
+                            <div class="settings-icon-box" style="background: #fefce8; color: #eab308;">⏰</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">通知タイミング</span>
+                            </div>
+                            <select id="setting-push-minutes" class="settings-input-inline" style="width: auto;">
+                                <option value="0">時間通り</option>
+                                <option value="5">5分前</option>
+                                <option value="10" selected>10分前</option>
+                                <option value="15">15分前</option>
+                                <option value="30">30分前</option>
+                                <option value="60">1時間前</option>
+                            </select>
+                        </div>
+                        <div class="settings-list-item" id="btn-test-notification" style="cursor: pointer; display: none;">
+                            <div class="settings-icon-box" style="background: #e0f2fe; color: #0284c7;">🧪</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">テスト通知を送信</span>
+                                <span class="settings-item-subtitle" style="font-size:0.75rem;">10秒後に通知が届きます</span>
+                            </div>
                         </div>
                     </div>
                 </details>
@@ -754,6 +807,17 @@
                     </div>
                 </div>
 
+                <div style="background: #fff0f2; border: 1px solid #ffe4e6; padding: 10px 12px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; margin-top: 2px;">
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 0.85rem; font-weight: bold; color: #e11d48;">祝日は除外する</span>
+                        <span style="font-size: 0.7rem; color: #fb7185;">祝日と重なる日はスキップします</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="import-skip-holidays" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
                 <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
                     <div>
                         <label style="font-size:0.8rem; color:var(--text-secondary); font-weight:bold;">タイトル</label>
@@ -773,6 +837,20 @@
                     <div>
                         <label style="font-size:0.8rem; color:var(--text-secondary); font-weight:bold;">終了時間</label>
                         <input type="time" id="import-end-time" placeholder="自動計算" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-light);">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="font-size:0.8rem; color:var(--text-secondary); font-weight:bold;">カラー</label>
+                    <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                        <input type="color" id="import-custom-color" value="#3b82f6" style="width: 32px; height: 32px; border: none; padding: 0; cursor: pointer; border-radius: 4px;">
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="color-preset-btn import-color-preset" style="background: #ef4444;" data-color="#ef4444"></button>
+                            <button type="button" class="color-preset-btn import-color-preset" style="background: #f59e0b;" data-color="#f59e0b"></button>
+                            <button type="button" class="color-preset-btn import-color-preset" style="background: #22c55e;" data-color="#22c55e"></button>
+                            <button type="button" class="color-preset-btn import-color-preset" style="background: #3b82f6;" data-color="#3b82f6"></button>
+                            <button type="button" class="color-preset-btn import-color-preset" style="background: #8b5cf6;" data-color="#8b5cf6"></button>
+                        </div>
                     </div>
                 </div>
 

@@ -10,6 +10,7 @@ import { Settings } from './settings.js';
 import { CustomTabs } from './customTabs.js';
 import { ShareFeature } from './share.js';
 import { ScheduleImportManager } from './import.js?v=2';
+import { Notifications } from './notifications.js';
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
@@ -48,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.Calendar = Calendar;
     Settings.init();
     window.Settings = Settings;
+    Notifications.init();
 
     // Restore missing initializations
     Finance.init(() => {
@@ -101,6 +103,10 @@ function setupEventListeners() {
         // Switch to list view if in calendar view (optional, but makes sense)
         if (document.getElementById('schedule-list').hidden) {
             document.getElementById('btn-view-list').click();
+        }
+
+        if (window.Calendar) {
+            window.Calendar.bottomScheduleDate = new Date();
         }
 
         UI.render(); // Re-render to ensure fresh state
@@ -512,26 +518,31 @@ function setupEventListeners() {
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         const formData = new FormData(form);
-        const scheduleId = formData.get('id') || generateId();
+        const scheduleIdFromForm = formData.get('id');
         
         const rawTitle = formData.get('title') || '';
         
         // Custom color
         const customColor = formData.get('custom-color') || '#6366f1';
 
-        const schedule = {
-            id: scheduleId,
-            title: rawTitle,
-            date: formData.get('date'),
-            startTime: formData.get('start-time'),
-            endTime: formData.get('end-time'),
-            description: formData.get('description'),
-            category: selectedCategory,
-            customColor: customColor,
-            createdAt: new Date().toISOString()
-        };
+        const titles = rawTitle.split(/[\s　]+/).filter(t => t.length > 0);
+        if (titles.length === 0) titles.push('');
 
-        Storage.save(schedule);
+        titles.forEach((titleSegment, index) => {
+            const schedule = {
+                id: (index === 0 && scheduleIdFromForm) ? scheduleIdFromForm : generateId(),
+                title: titleSegment,
+                date: formData.get('date'),
+                startTime: formData.get('start-time'),
+                endTime: formData.get('end-time'),
+                description: formData.get('description'),
+                category: selectedCategory,
+                customColor: customColor,
+                createdAt: new Date().toISOString()
+            };
+            Storage.save(schedule);
+        });
+
         UI.render();
         Calendar.refresh();
         closeModal();

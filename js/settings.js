@@ -1,5 +1,6 @@
 import { SafeStorage } from './utils.js';
 import { CalendarSync } from './calendarSync.js';
+import { Storage } from './storage.js';
 
 export const Settings = {
     // Default preferences
@@ -154,6 +155,63 @@ export const Settings = {
         if (toggleShare) toggleShare.checked = this.prefs.showShare !== false;
         if (toggleTodaySchedule) toggleTodaySchedule.checked = this.prefs.showTodaySchedule !== false;
         if (toggleScheduleImport) toggleScheduleImport.checked = this.prefs.showScheduleImport === true;
+        
+        // --- 過去データ復元(Auto Backup) リストの描画 ---
+        this.renderAutoBackupList();
+    },
+
+    renderAutoBackupList() {
+        const listEl = document.getElementById('auto-backup-list');
+        if (!listEl) return;
+
+        try {
+            const backups = Storage.getAvailableBackups();
+            if (backups.length === 0) {
+                listEl.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--text-secondary); font-size: 0.85rem;">自動保存された履歴がありません。</div>`;
+                return;
+            }
+
+            listEl.innerHTML = backups.map(key => {
+                // key is like "schedule_backup_2026-04-11"
+                let dateStr = key.replace('schedule_backup_', '').replace(/-/g, '/');
+                return `
+                <div class="settings-list-item backup-item-row" data-key="${key}" style="cursor: pointer; background: #fff; border: 1px solid var(--border-light); border-radius: 8px; margin-bottom: 6px; padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="background: #e0e7ff; color: #4338ca; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">📄</div>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: bold; font-size: 0.95rem; color: #1e293b;">${dateStr} のデータ</span>
+                            <span style="font-size: 0.75rem; color: #64748b;">タップしてこの状態へ復元</span>
+                        </div>
+                    </div>
+                    <span style="color: #0284c7; font-size: 1.2rem; font-weight: bold;">❯</span>
+                </div>
+                `;
+            }).join('');
+
+            // Add click listeners to rows
+            const rows = listEl.querySelectorAll('.backup-item-row');
+            rows.forEach(row => {
+                row.addEventListener('click', async () => {
+                    const backupKey = row.getAttribute('data-key');
+                    const confirmRestore = confirm('注意：現在のデータ（端末および同期先のクラウド）はすべて上書きまたは削除され、選択した過去の状態に完全に巻き戻ります。本当によろしいですか？');
+                    if (confirmRestore) {
+                        try {
+                            const success = await Storage.restoreBackup(backupKey);
+                            if (success) {
+                                alert('復元が完了しました。最新の状態を反映するため、画面をリロードします。');
+                                window.location.reload();
+                            } else {
+                                alert('復元に失敗しました。');
+                            }
+                        } catch (e) {
+                            alert('エラーが発生しました: ' + e.message);
+                        }
+                    }
+                });
+            });
+        } catch(e) {
+            console.error('Failed to render auto backups', e);
+        }
     },
 
     // Apply settings

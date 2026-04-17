@@ -1,4 +1,4 @@
-const CACHE_NAME = 'schedule-app-v18'; // ← ★更新ごとに変える
+const CACHE_NAME = 'schedule-app-v20'; // ← ★更新ごとに変える
 const ASSETS = [
     './',
     './index.html',
@@ -53,6 +53,24 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
         caches.match(e.request).then((response) => {
             return response || fetch(e.request);
+        })
+    );
+});
+
+// 通知クリック時の動作（アプリへフォーカス、または起動）
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            for (let i = 0; i < clientList.length; i++) {
+                let client = clientList[i];
+                if (client.url.includes('/') && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow('/');
+            }
         })
     );
 });

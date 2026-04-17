@@ -10,6 +10,7 @@ export class CalendarInstance {
         this.currentMonth = new Date().getMonth();
         this.currentDate = new Date(); // Support for specific day in week view
         this.viewMode = 'month'; // 'month' or 'week'
+        this.holidays = JSON.parse(localStorage.getItem('pwa_holidays_cache')) || {};
 
         // Internal preferences (dynamic based on Settings)
         this.getStartHour = () => Settings.prefs.calendarStart !== undefined ? Settings.prefs.calendarStart : 5;
@@ -21,6 +22,26 @@ export class CalendarInstance {
         if (!this.container) return;
         this.setupTouchEvents(); // Attach events once
         this.render();
+        this.fetchHolidays();
+    }
+
+    async fetchHolidays() {
+        try {
+            const cachedKeys = Object.keys(this.holidays).length;
+            const res = await fetch('https://holidays-jp.github.io/api/v1/date.json');
+            if (res.ok) {
+                const data = await res.json();
+                this.holidays = data;
+                localStorage.setItem('pwa_holidays_cache', JSON.stringify(data));
+                
+                // If we didn't have data before, re-render to show it
+                if (cachedKeys === 0 && this.container) {
+                    this.render();
+                }
+            }
+        } catch(e) {
+            console.error("Failed to fetch holidays", e);
+        }
     }
 
     refresh() {
@@ -255,10 +276,26 @@ export class CalendarInstance {
             cell.className = 'day-cell';
             const dateStr = formatDateForInput(new Date(this.currentYear, this.currentMonth, day));
 
+            if (this.holidays[dateStr]) {
+                cell.classList.add('holiday');
+            }
+
+            const headerRow = document.createElement('div');
+            headerRow.className = 'day-cell-header';
+
             const num = document.createElement('div');
             num.className = 'day-number';
             num.textContent = day;
-            cell.appendChild(num);
+            headerRow.appendChild(num);
+
+            if (this.holidays[dateStr]) {
+                const hname = document.createElement('div');
+                hname.className = 'holiday-name';
+                hname.textContent = this.holidays[dateStr];
+                headerRow.appendChild(hname);
+            }
+            
+            cell.appendChild(headerRow);
 
             const daySchedules = schedules.filter(s => s.date === dateStr);
             if (daySchedules.length > 0) {
@@ -331,8 +368,14 @@ export class CalendarInstance {
 
             const header = document.createElement('div');
             header.className = 'weekly-day-header';
+            if (this.holidays[dateStr]) {
+                header.classList.add('holiday');
+            }
             const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
             header.innerHTML = `<span class="day-name">${dayNames[i]}</span><span class="day-num">${date.getDate()}</span>`;
+            if (this.holidays[dateStr]) {
+                header.innerHTML += `<div class="holiday-name">${this.holidays[dateStr]}</div>`;
+            }
             col.appendChild(header);
 
             const body = document.createElement('div');
@@ -532,20 +575,148 @@ export class CalendarInstance {
     renderTodaySchedule() {
         if (!this.container) return;
         
+        if (!this.bottomScheduleDate) {
+            this.bottomScheduleDate = new Date();
+        }
+        
         const card = document.createElement('div');
         card.className = 'today-schedule-container';
+        card.style.position = 'relative';
+        card.style.overflow = 'hidden';
         
+        const headerContainer = document.createElement('div');
+        headerContainer.style.display = 'flex';
+        headerContainer.style.justifyContent = 'space-between';
+        headerContainer.style.alignItems = 'center';
+        headerContainer.style.marginBottom = '10px';
+
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = '〈';
+        prevBtn.style.background = 'none';
+        prevBtn.style.border = 'none';
+        prevBtn.style.color = 'var(--text-secondary)';
+        prevBtn.style.fontSize = '1.2rem';
+        prevBtn.style.cursor = 'pointer';
+        prevBtn.style.padding = '0 10px';
+        
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = '〉';
+        nextBtn.style.background = 'none';
+        nextBtn.style.border = 'none';
+        nextBtn.style.color = 'var(--text-secondary)';
+        nextBtn.style.fontSize = '1.2rem';
+        nextBtn.style.cursor = 'pointer';
+        nextBtn.style.padding = '0 10px';
+
         const header = document.createElement('h3');
         header.className = 'today-schedule-header';
-        header.textContent = '今日の予定';
-        card.appendChild(header);
+        header.style.margin = '0';
+        header.style.textAlign = 'center';
+        header.style.flex = '1';
 
+        headerContainer.appendChild(prevBtn);
+        headerContainer.appendChild(header);
+        headerContainer.appendChild(nextBtn);
+        
+        card.appendChild(headerContainer);
+
+        const listContainer = document.createElement('div');
+        listContainer.className = 'today-schedule-list-wrapper';
+        card.appendChild(listContainer);
+
+        let startX = 0;
+        let startY = 0;
+        let isDragging = false;
+
+        card.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            isDragging = true;
+        }, { passive: true });
+
+        card.addEventListener('touchend', (e) => {
+            e.stopPropagation();
+            if (!isDragging) return;
+            const endX = e.changedTouches[0].clientX;
+            const dx = endX - startX;
+            const dy = e.changedTouches[0].clientY - startY;
+            isDragging = false;
+
+            if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+                this.navigateBottomSchedule(header, listContainer, dx < 0 ? 1 : -1);
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            this.navigateBottomSchedule(header, listContainer, -1);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            this.navigateBottomSchedule(header, listContainer, 1);
+        });
+
+        this.updateBottomScheduleContent(header, listContainer);
+        this.container.appendChild(card);
+    }
+
+    navigateBottomSchedule(header, listContainer, direction) {
+        listContainer.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+        listContainer.style.transform = direction > 0 ? 'translateX(-20px)' : 'translateX(20px)';
+        listContainer.style.opacity = '0';
+        
+        setTimeout(() => {
+            this.bottomScheduleDate.setDate(this.bottomScheduleDate.getDate() + direction);
+            this.updateBottomScheduleContent(header, listContainer);
+            
+            listContainer.style.transition = 'none';
+            listContainer.style.transform = direction > 0 ? 'translateX(20px)' : 'translateX(-20px)';
+            
+            void listContainer.offsetWidth; // reflow
+            
+            listContainer.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+            listContainer.style.transform = 'translateX(0)';
+            listContainer.style.opacity = '1';
+        }, 200);
+    }
+
+    updateBottomScheduleContent(header, listContainer) {
+        const today = new Date();
+        const y = this.bottomScheduleDate.getFullYear();
+        const m = this.bottomScheduleDate.getMonth();
+        const d = this.bottomScheduleDate.getDate();
+        
+        const isToday = y === today.getFullYear() && m === today.getMonth() && d === today.getDate();
+        
+        const days = ['日', '月', '火', '水', '木', '金', '土'];
+        const dayStr = days[this.bottomScheduleDate.getDay()];
+
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        
+        if (isToday) {
+            header.innerHTML = `今日の予定 <span style="font-size:0.8rem; font-weight:normal; color:var(--text-secondary); margin-left:8px;">${m + 1}/${d} (${dayStr})</span>`;
+        } else if (y === tomorrow.getFullYear() && m === tomorrow.getMonth() && d === tomorrow.getDate()) {
+            header.innerHTML = `明日の予定 <span style="font-size:0.8rem; font-weight:normal; color:var(--text-secondary); margin-left:8px;">${m + 1}/${d} (${dayStr})</span>`;
+        } else if (y === yesterday.getFullYear() && m === yesterday.getMonth() && d === yesterday.getDate()) {
+            header.innerHTML = `昨日の予定 <span style="font-size:0.8rem; font-weight:normal; color:var(--text-secondary); margin-left:8px;">${m + 1}/${d} (${dayStr})</span>`;
+        } else {
+            header.innerHTML = `${m + 1}月${d}日(${dayStr}) の予定`;
+        }
+
+        listContainer.innerHTML = '';
         const list = document.createElement('div');
         list.className = 'today-schedule-list';
 
-        const todayStr = getTodayString();
-        const schedules = Storage.getAll().filter(s => s.date === todayStr);
+        const yStr = y;
+        const mStr = String(m + 1).padStart(2, '0');
+        const dStr = String(d).padStart(2, '0');
+        const searchDateStr = `${yStr}-${mStr}-${dStr}`;
 
+        const schedules = Storage.getAll().filter(s => s.date === searchDateStr);
         schedules.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
 
         if (schedules.length === 0) {
@@ -589,8 +760,7 @@ export class CalendarInstance {
             });
         }
         
-        card.appendChild(list);
-        this.container.appendChild(card);
+        listContainer.appendChild(list);
     }
 }
 

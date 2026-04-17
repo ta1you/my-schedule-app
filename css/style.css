@@ -799,6 +799,25 @@ body.has-wallpaper .bottom-nav {
     color: var(--info-color);
 }
 
+.day-cell.holiday .day-number,
+.weekly-day-header.holiday .day-name,
+.weekly-day-header.holiday .day-num {
+    color: var(--danger-color) !important;
+}
+
+.holiday-name {
+    font-size: 0.55rem;
+    color: var(--danger-color);
+    text-align: left;
+    line-height: 1.1;
+    margin-top: 0;
+    margin-left: 2px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .day-cell {
     background: var(--bg-surface);
     min-height: 70px;
@@ -813,6 +832,14 @@ body.has-wallpaper .bottom-nav {
     background: #f1f5f9;
 }
 
+.day-cell-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    margin-bottom: 2px;
+}
+
 .day-number {
     font-size: 0.85rem;
     font-weight: 600;
@@ -823,7 +850,7 @@ body.has-wallpaper .bottom-nav {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    margin-bottom: 2px;
+    flex-shrink: 0;
 }
 
 /* Today highlight */

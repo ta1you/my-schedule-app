@@ -59,6 +59,17 @@ export const ScheduleImportManager = {
             });
         }
         
+        // Import modal specific color presets
+        document.querySelectorAll('.import-color-preset').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const color = e.target.dataset.color;
+                const colorInput = document.getElementById('import-custom-color');
+                if (colorInput) {
+                    colorInput.value = color;
+                }
+            });
+        });
+        
         if (btnClear) {
             btnClear.addEventListener('click', () => {
                 const confirmClear = confirm('リストに追加されたすべての予定をクリアしますか？');
@@ -75,7 +86,7 @@ export const ScheduleImportManager = {
                 
                 const repeatCount = parseInt(document.getElementById('import-repeat-count').value);
                 const dayIndex = parseInt(document.getElementById('import-day-of-week').value);
-                const title = document.getElementById('import-title').value.trim();
+                const rawTitle = document.getElementById('import-title').value.trim();
                 const comment = document.getElementById('import-comment').value.trim();
                 const startTimeStr = document.getElementById('import-start-time').value;
                 let endTimeStr = document.getElementById('import-end-time').value;
@@ -88,7 +99,9 @@ export const ScheduleImportManager = {
                 }
 
                 const category = '学校'; 
-                const customColor = '#22c55e'; // green
+                const colorInput = document.getElementById('import-custom-color');
+                const customColor = colorInput ? colorInput.value : '#3b82f6';
+                const skipHolidays = document.getElementById('import-skip-holidays') ? document.getElementById('import-skip-holidays').checked : false;
                 
                 const today = new Date();
                 const baseDate = new Date(today);
@@ -99,28 +112,47 @@ export const ScheduleImportManager = {
                 const groupItems = [];
                 const batchId = generateId(); // Unique ID for this generation batch
                 
-                for (let i = 0; i < repeatCount; i++) {
+                const titles = rawTitle.split(/[\s　]+/).filter(t => t.length > 0);
+                if (titles.length === 0) titles.push('');
+                
+                let createdWeeks = 0;
+                let weeksToOffset = 0;
+                let maxTries = 100; // 安全のための無限ループ防止
+                
+                while (createdWeeks < repeatCount && maxTries > 0) {
+                    maxTries--;
                     const d = new Date(baseDate);
-                    d.setDate(d.getDate() + (i * 7));
+                    d.setDate(d.getDate() + (weeksToOffset * 7));
                     const y = d.getFullYear();
                     const m = String(d.getMonth() + 1).padStart(2, '0');
                     const day = String(d.getDate()).padStart(2, '0');
                     const dateStr = `${y}-${m}-${day}`;
 
-                    groupItems.push({
-                        id: generateId(),
-                        title: title,
-                        date: dateStr,
-                        startTime: startTimeStr,
-                        endTime: endTimeStr,
-                        description: comment,
-                        category: category,
-                        customColor: customColor,
-                        createdAt: new Date().toISOString(),
-                        _isSeries: i === 0, // only true for the first item to group in preview
-                        _seriesCount: repeatCount,
-                        _batchId: batchId
+                    // 祝日スキップ判定
+                    if (skipHolidays && window.Calendar && window.Calendar.holidays && window.Calendar.holidays[dateStr]) {
+                        weeksToOffset++;
+                        continue;
+                    }
+
+                    titles.forEach(t => {
+                        groupItems.push({
+                            id: generateId(),
+                            title: t,
+                            date: dateStr,
+                            startTime: startTimeStr,
+                            endTime: endTimeStr,
+                            description: comment,
+                            category: category,
+                            customColor: customColor,
+                            createdAt: new Date().toISOString(),
+                            _isSeries: createdWeeks === 0, // only true for the first item to group in preview
+                            _seriesCount: repeatCount,
+                            _batchId: batchId
+                        });
                     });
+                    
+                    createdWeeks++;
+                    weeksToOffset++;
                 }
                 
                 pendingItems.push(...groupItems);

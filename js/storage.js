@@ -13,6 +13,9 @@ export const Storage = {
             listeners.push(onDataChangedCallback);
         }
 
+        // Automatic Backup Check
+        this.checkAndCreateBackup();
+
         // 1. Load from LocalStorage first (instant render)
         this.loadFromLocal();
         this._notifyListeners();
@@ -109,5 +112,103 @@ export const Storage = {
 
     _notifyListeners() {
         listeners.forEach(cb => cb());
+    },
+
+    // --- Automatic Backup & Restore ---
+    checkAndCreateBackup() {
+        try {
+            const lastBackupStr = SafeStorage.getItem('last_backup_date');
+            const now = new Date();
+            
+            if (!lastBackupStr) {
+                this.createBackup(now);
+                return;
+            }
+            
+            const lastBackup = new Date(lastBackupStr);
+            const daysSince = (now - lastBackup) / (1000 * 60 * 60 * 24);
+            // 7日以上経過でバックアップ作成
+            if (daysSince >= 7) {
+                this.createBackup(now);
+            }
+        } catch (e) {
+            console.error('Backup check failed', e);
+        }
+    },
+
+    createBackup(dateObj) {
+        const dateStr = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+        const backupKey = `schedule_backup_${dateStr}`;
+        const data = SafeStorage.getItem(STORAGE_KEY) || '[]';
+        
+        SafeStorage.setItem(backupKey, data);
+        SafeStorage.setItem('last_backup_date', dateObj.toISOString());
+        
+        // 直近5件だけ残すループ
+        const allKeys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith('schedule_backup_')) {
+                allKeys.push(k);
+            }
+        }
+        
+        if (allKeys.length > 5) {
+            allKeys.sort(); // 古いものが先頭
+            const keysToDelete = allKeys.slice(0, allKeys.length - 5);
+            keysToDelete.forEach(k => SafeStorage.removeItem(k));
+        }
+    },
+
+    getAvailableBackups() {
+        const backups = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith('schedule_backup_')) {
+                backups.push(k);
+            }
+        }
+        return backups.sort((a, b) => b.localeCompare(a)); // 新しい順
+    },
+
+    async restoreBackup(backupKey) {
+        try {
+            const data = SafeStorage.getItem(backupKey);
+            if (!data) return false;
+
+            const restoredSchedules = JSON.parse(data);
+            
+            // Local Update
+            SafeStorage.setItem(STORAGE_KEY, data);
+            schedules = restoredSchedules;
+            this._updateState();
+
+            // Cloud Rewrite (If authenticated)
+            const uid = Auth.getUserId();
+            if (uid && db) {
+                const collectionRef = db.collection('users').doc(uid).collection('schedules');
+                const snapshot = await collectionRef.get();
+                
+                // Firestore batch operations (max 500 limit. Assumes mostly under 500)
+                const batch = db.batch();
+                
+                // Delete all existing remote
+                snapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                
+                // Save restored items
+                restoredSchedules.forEach(item => {
+                    const docRef = collectionRef.doc(item.id);
+                    batch.set(docRef, item);
+                });
+                
+                await batch.commit();
+            }
+            return true;
+        } catch (e) {
+            console.error('Restore failed', e);
+            return false;
+        }
     }
 };
