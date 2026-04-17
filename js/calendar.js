@@ -287,13 +287,6 @@ export class CalendarInstance {
             num.className = 'day-number';
             num.textContent = day;
             headerRow.appendChild(num);
-
-            if (this.holidays[dateStr]) {
-                const hname = document.createElement('div');
-                hname.className = 'holiday-name';
-                hname.textContent = this.holidays[dateStr];
-                headerRow.appendChild(hname);
-            }
             
             cell.appendChild(headerRow);
 
@@ -373,9 +366,6 @@ export class CalendarInstance {
             }
             const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
             header.innerHTML = `<span class="day-name">${dayNames[i]}</span><span class="day-num">${date.getDate()}</span>`;
-            if (this.holidays[dateStr]) {
-                header.innerHTML += `<div class="holiday-name">${this.holidays[dateStr]}</div>`;
-            }
             col.appendChild(header);
 
             const body = document.createElement('div');
