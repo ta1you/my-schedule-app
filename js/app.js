@@ -489,6 +489,8 @@ function setupEventListeners() {
         form.querySelector('input[name="id"]').value = '';
         document.getElementById('modal-title').textContent = '予定を追加';
         deleteBtn.hidden = true;
+        const copyBtn = document.getElementById('btn-copy');
+        if (copyBtn) copyBtn.hidden = true;
         selectedCategory = 'その他';
         
         // 履歴・テンプレート生成
@@ -602,6 +604,18 @@ function setupEventListeners() {
         }
     });
 
+    // Copy
+    const copyBtn = document.getElementById('btn-copy');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+            const idInput = form.querySelector('input[name="id"]');
+            if (idInput) idInput.value = ''; // 必須: IDをクリアして新規保存扱いに
+            document.getElementById('modal-title').textContent = '予定を複製 (新規保存)';
+            deleteBtn.hidden = true;
+            copyBtn.hidden = true;
+        });
+    }
+
     // Global expose for UI onclick
     window.openEditModal = (id) => {
         const schedule = Storage.getById(id);
@@ -625,6 +639,8 @@ function setupEventListeners() {
 
         document.getElementById('modal-title').textContent = '予定を編集';
         deleteBtn.hidden = false;
+        const copyBtn = document.getElementById('btn-copy');
+        if (copyBtn) copyBtn.hidden = false;
         
         // Hide templates when editing
         const templateContainer = document.getElementById('schedule-templates');
