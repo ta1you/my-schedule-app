@@ -329,9 +329,11 @@ export class CalendarInstance {
         const schedules = Storage.getAll();
         
         target.innerHTML = '';
+        
+        // Use a wrapper or class instead of inline styles if needed, 
+        // but flex is needed for timeline layout. We must NOT set height inline.
         target.style.display = 'flex';
         target.style.flexDirection = 'column';
-        target.style.height = '100%';
         target.style.background = '#ffffff';
 
         // 1. Ribbon top part
