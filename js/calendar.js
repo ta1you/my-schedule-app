@@ -327,181 +327,190 @@ export class CalendarInstance {
 
     renderWeek(target) {
         const schedules = Storage.getAll();
-        const container = document.createElement('div');
-        container.className = 'weekly-vertical-container';
+        
+        target.innerHTML = '';
+        target.style.display = 'flex';
+        target.style.flexDirection = 'column';
+        target.style.height = '100%';
+        target.style.background = '#ffffff';
 
-        const grid = document.createElement('div');
-        grid.className = 'weekly-grid';
+        // 1. Ribbon top part
+        const ribbon = document.createElement('div');
+        ribbon.className = 'ios-week-ribbon';
 
-        const startH = this.getStartHour();
-        const endH = this.getEndHour();
-
-        // Time column
-        const timeCol = document.createElement('div');
-        timeCol.className = 'weekly-time-col';
-        for (let h = startH; h <= endH; h++) {
-            const cell = document.createElement('div');
-            cell.className = 'weekly-hour-cell';
-            cell.textContent = `${h}:00`;
-            timeCol.appendChild(cell);
-        }
-        grid.appendChild(timeCol);
-
-        // Day columns
         const startOfWeek = new Date(this.currentDate);
-        startOfWeek.setDate(this.currentDate.getDate() - this.currentDate.getDay());
+        startOfWeek.setDate(this.currentDate.getDate() - this.currentDate.getDay()); // Sunday start
 
+        const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+        
         for (let i = 0; i < 7; i++) {
-            const date = new Date(startOfWeek);
-            date.setDate(startOfWeek.getDate() + i);
-            const dateStr = formatDateForInput(date);
+            const iterDate = new Date(startOfWeek);
+            iterDate.setDate(startOfWeek.getDate() + i);
+            const isSelected = iterDate.getFullYear() === this.currentDate.getFullYear() &&
+                               iterDate.getMonth() === this.currentDate.getMonth() &&
+                               iterDate.getDate() === this.currentDate.getDate();
+                               
+            const dayEl = document.createElement('div');
+            dayEl.className = `ios-ribbon-day ${isSelected ? 'selected' : ''}`;
+            
+            const dayNameEl = document.createElement('div');
+            dayNameEl.className = 'day-name';
+            if(i===0) dayNameEl.style.color = isSelected ? 'white' : '#ef4444';
+            if(i===6) dayNameEl.style.color = isSelected ? 'white' : '#3b82f6';
+            dayNameEl.textContent = dayNames[i];
+            
+            const dayNumEl = document.createElement('div');
+            dayNumEl.className = 'day-num';
+            dayNumEl.textContent = iterDate.getDate();
+            
+            dayEl.appendChild(dayNameEl);
+            dayEl.appendChild(dayNumEl);
+            
+            dayEl.onclick = () => {
+                this.currentDate = new Date(iterDate);
+                this.render(); // Re-render to update view
+            };
+            
+            ribbon.appendChild(dayEl);
+        }
+        
+        target.appendChild(ribbon);
 
-            const col = document.createElement('div');
-            col.className = 'weekly-day-col';
+        // 2. Date Header
+        const dateHeader = document.createElement('div');
+        dateHeader.className = 'ios-date-header';
+        dateHeader.textContent = `${this.currentDate.getFullYear()}年${this.currentDate.getMonth() + 1}月${this.currentDate.getDate()}日 ${dayNames[this.currentDate.getDay()]}曜日`;
+        target.appendChild(dateHeader);
 
-            const header = document.createElement('div');
-            header.className = 'weekly-day-header';
-            if (this.holidays[dateStr]) {
-                header.classList.add('holiday');
-            }
-            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-            header.innerHTML = `<span class="day-name">${dayNames[i]}</span><span class="day-num">${date.getDate()}</span>`;
-            col.appendChild(header);
+        // 3. Timeline Area
+        const timelineArea = document.createElement('div');
+        timelineArea.className = 'ios-timeline-area';
 
-            const body = document.createElement('div');
-            body.className = 'weekly-grid-body';
-
-            // Grid lines
-            const lines = document.createElement('div');
-            lines.className = 'weekly-grid-lines';
-            const numHours = endH - startH;
-            for (let h = 0; h <= numHours; h++) {
-                const line = document.createElement('div');
-                line.className = 'weekly-grid-line';
-                line.style.top = `${h * 60}px`;
-                lines.appendChild(line);
-            }
-            body.appendChild(lines);
-
-            // Events
-            const daySchedules = schedules.filter(s => s.date === dateStr && s.startTime);
-            daySchedules.forEach(s => {
-                const [h, m] = s.startTime.split(':').map(Number);
-                if (h >= startH && h < endH) {
-                    const top = (h - startH) * 60 + (m / 60) * 60;
-                    const block = document.createElement('div');
-                    block.className = `weekly-event-block type-${s.category || 'その他'}`;
-                    block.style.top = `${top}px`;
-                    block.dataset.id = s.id;
-
-                    let height = 60;
-                    if (s.endTime) {
-                        const [eh, em] = s.endTime.split(':').map(Number);
-                        height = Math.max(30, (eh - h) * 60 + (em - m));
-                    }
-                    block.style.height = `${height}px`;
-                    block.innerHTML = `<span class="event-time">${s.startTime}</span>${s.title}`;
-                    
-                    if (s.customColor) {
-                        block.style.backgroundColor = s.customColor;
-                        block.style.color = getContrastYIQ(s.customColor);
-                    }
-
-                    // Click to edit, but distinguish from drag
-                    let isDragging = false;
-                    block.onclick = () => { if (!isDragging) window.openEditModal(s.id); };
-
-                    this.setupDragEvents(block, s, top);
-
-                    body.appendChild(block);
-                }
-            });
-
-            col.appendChild(body);
-            grid.appendChild(col);
+        // 24 Hour grid
+        const gridBody = document.createElement('div');
+        gridBody.className = 'ios-timeline-grid';
+        
+        for (let h = 0; h <= 24; h++) {
+            const row = document.createElement('div');
+            row.className = 'ios-timeline-row';
+            row.style.top = `${h * 60}px`;
+            
+            const timeLabel = document.createElement('div');
+            timeLabel.className = 'ios-timeline-time';
+            if(h < 24) timeLabel.textContent = `${String(h).padStart(2,'0')}:00`;
+            
+            const line = document.createElement('div');
+            line.className = 'ios-timeline-line';
+            
+            row.appendChild(timeLabel);
+            row.appendChild(line);
+            gridBody.appendChild(row);
         }
 
-        container.appendChild(grid);
-        target.appendChild(container);
-    }
+        // Current time line
+        const now = new Date();
+        if (now.getFullYear() === this.currentDate.getFullYear() &&
+            now.getMonth() === this.currentDate.getMonth() &&
+            now.getDate() === this.currentDate.getDate()) {
+            
+            const currentLine = document.createElement('div');
+            currentLine.className = 'ios-current-time-line';
+            
+            const currentMins = now.getHours() * 60 + now.getMinutes();
+            currentLine.style.top = `${currentMins}px`;
+            
+            const dot = document.createElement('div');
+            dot.className = 'ios-current-time-dot';
+            currentLine.appendChild(dot);
+            
+            const timeText = document.createElement('div');
+            timeText.className = 'ios-current-time-text';
+            timeText.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            currentLine.appendChild(timeText);
+            
+            gridBody.appendChild(currentLine);
+        }
 
-    setupDragEvents(block, schedule, initialTop) {
-        let startY = 0;
-        let startTop = initialTop;
+        // Events
+        const targetDateStr = formatDateForInput(this.currentDate);
+        const daySchedules = schedules.filter(s => s.date === targetDateStr && s.startTime);
+        
+        // Sort by start time for overlap logic
+        daySchedules.sort((a,b) => {
+            const aMins = parseInt(a.startTime.split(':')[0])*60 + parseInt(a.startTime.split(':')[1]);
+            const bMins = parseInt(b.startTime.split(':')[0])*60 + parseInt(b.startTime.split(':')[1]);
+            return aMins - bMins;
+        });
 
-        const onPointerDown = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            block.setPointerCapture(e.pointerId);
-            startY = e.clientY;
-            startTop = parseFloat(block.style.top);
-            block.classList.add('dragging');
-        };
+        const CATEGORY_COLORS = { '勉強':'#3b82f6', 'バイト':'#8b5cf6', '学校':'#10b981', '予定':'#10b981', '遊び':'#f59e0b', 'その他':'#64748b' };
+        let placedEvents = [];
 
-        const onPointerMove = (e) => {
-            if (!block.classList.contains('dragging')) return;
-            const dy = e.clientY - startY;
-            let newTop = startTop + dy;
-
-            const startH = this.getStartHour();
-            const endH = this.getEndHour();
-            const numHours = endH - startH;
-
-            // Constrain
-            newTop = Math.max(0, Math.min(newTop, numHours * 60)); 
-
-            // Snap to 15 mins (15px)
-            newTop = Math.round(newTop / 15) * 15;
-
-            block.style.top = `${newTop}px`;
-
-            // Update temporary time display
-            let hours = Math.floor(newTop / 60) + startH;
-            const mins = (newTop % 60);
-            const timeStr = `${hours}:${mins.toString().padStart(2, '0')}`;
-            const timeLabel = block.querySelector('.event-time');
-            if (timeLabel) timeLabel.textContent = timeStr;
-        };
-
-        const onPointerUp = (e) => {
-            if (!block.classList.contains('dragging')) return;
-            block.classList.remove('dragging');
-            block.releasePointerCapture(e.pointerId);
-
-            const finalTop = parseFloat(block.style.top);
-            if (finalTop === startTop) return; // No change
-
-            const startH = this.getStartHour();
-            // Calculate new times
-            let hours = Math.floor(finalTop / 60) + startH;
-            const mins = (finalTop % 60);
-            const newStartTime = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-
-            // Shift end time by same duration
-            let newEndTime = schedule.endTime;
-            if (schedule.startTime && schedule.endTime) {
-                const [sh, sm] = schedule.startTime.split(':').map(Number);
-                const [eh, em] = schedule.endTime.split(':').map(Number);
-                const duration = (eh * 60 + em) - (sh * 60 + sm);
-
-                const endTotal = (hours * 60 + mins) + duration;
-                const eh_new = Math.floor(endTotal / 60);
-                const em_new = endTotal % 60;
-                newEndTime = `${eh_new}:${em_new.toString().padStart(2, '0')}`;
+        daySchedules.forEach(s => {
+            const [h, m] = s.startTime.split(':').map(Number);
+            const startMins = h * 60 + m;
+            let durationMins = 60; // default 1 hour
+            
+            if (s.endTime) {
+                const [eh, em] = s.endTime.split(':').map(Number);
+                durationMins = (eh * 60 + em) - startMins;
+                if(durationMins < 15) durationMins = 15; // min height
             }
 
-            // Save
-            const updated = { ...schedule, startTime: newStartTime, endTime: newEndTime };
-            Storage.save(updated);
+            // Naive overlapping logic
+            const overlapping = placedEvents.filter(p => Math.max(startMins, p.startMins) < Math.min(startMins + durationMins, p.endMins));
+            const leftIndex = overlapping.length; 
 
-            // Refresh to ensure everything is consistent
-            this.render();
-        };
+            const block = document.createElement('div');
+            block.className = 'ios-timeline-event';
+            block.style.top = `${startMins}px`;
+            block.style.height = `${durationMins}px`;
+            
+            if (leftIndex > 0) {
+                block.style.left = `calc(55px + ${leftIndex * 24}px)`; 
+                block.style.width = `calc(100% - ${55 + leftIndex * 24 + 10}px)`; 
+                block.style.zIndex = 10 + leftIndex;
+                block.style.boxShadow = '-2px 0 5px rgba(0,0,0,0.1)';
+            }
+            
+            const baseColor = s.customColor || CATEGORY_COLORS[s.category] || CATEGORY_COLORS['その他'];
+            block.style.borderLeftColor = baseColor;
+            
+            // convert hex to rgba
+            let r=241, g=245, b=249; 
+            if(baseColor.startsWith('#') && baseColor.length === 7) {
+                r = parseInt(baseColor.substring(1,3), 16);
+                g = parseInt(baseColor.substring(3,5), 16);
+                b = parseInt(baseColor.substring(5,7), 16);
+            }
+            block.style.backgroundColor = `rgba(${r}, ${g}, ${b}, 0.18)`;
 
-        block.onpointerdown = onPointerDown;
-        block.onpointermove = onPointerMove;
-        block.onpointerup = onPointerUp;
-        block.onpointercancel = onPointerUp;
+            block.innerHTML = `
+                 <div class="event-title" style="color: ${baseColor}; font-weight: bold; font-size: 0.8rem; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; padding: 2px 4px;">${s.title}</div>
+            `;
+            
+            let isDragging = false;
+            block.onclick = () => { if(!isDragging) window.openEditModal(s.id); };
+            
+            gridBody.appendChild(block);
+            placedEvents.push({ startMins, endMins: startMins + durationMins });
+        });
+
+        timelineArea.appendChild(gridBody);
+        target.appendChild(timelineArea);
+
+        // Auto scroll
+        setTimeout(() => {
+            let scrollMins = 0;
+            if (now.getFullYear() === this.currentDate.getFullYear() &&
+                now.getMonth() === this.currentDate.getMonth() &&
+                now.getDate() === this.currentDate.getDate()) {
+                scrollMins = (now.getHours() * 60) - 120; // 2 hrs before
+            } else {
+                scrollMins = 8 * 60; // 8:00 AM
+            }
+            if (scrollMins < 0) scrollMins = 0;
+            timelineArea.scrollTop = scrollMins;
+        }, 50);
     }
 
     renderShiftSalarySummary() {
@@ -687,19 +696,17 @@ export class CalendarInstance {
         const yesterday = new Date(today);
         yesterday.setDate(today.getDate() - 1);
         
-        if (isToday) {
-            header.innerHTML = `今日の予定 <span style="font-size:0.8rem; font-weight:normal; color:var(--text-secondary); margin-left:8px;">${m + 1}/${d} (${dayStr})</span>`;
-        } else if (y === tomorrow.getFullYear() && m === tomorrow.getMonth() && d === tomorrow.getDate()) {
-            header.innerHTML = `明日の予定 <span style="font-size:0.8rem; font-weight:normal; color:var(--text-secondary); margin-left:8px;">${m + 1}/${d} (${dayStr})</span>`;
-        } else if (y === yesterday.getFullYear() && m === yesterday.getMonth() && d === yesterday.getDate()) {
-            header.innerHTML = `昨日の予定 <span style="font-size:0.8rem; font-weight:normal; color:var(--text-secondary); margin-left:8px;">${m + 1}/${d} (${dayStr})</span>`;
-        } else {
-            header.innerHTML = `${m + 1}月${d}日(${dayStr}) の予定`;
-        }
+        const dateStrForHeader = `${y}年${m + 1}月${d}日 (${dayStr})`;
+        header.innerHTML = `
+            <div style="color: var(--text-primary); padding: 10px 16px 5px 16px; font-size: 1.05rem; font-weight: bold; text-align: left; margin: 0; border-bottom: 2px solid #f1f5f9;">
+                ${dateStrForHeader}
+            </div>
+        `;
 
         listContainer.innerHTML = '';
+        listContainer.style.background = '#ffffff'; // explicitly white background for items
         const list = document.createElement('div');
-        list.className = 'today-schedule-list';
+        list.className = 'today-schedule-list-v2';
 
         const yStr = y;
         const mStr = String(m + 1).padStart(2, '0');
@@ -710,40 +717,42 @@ export class CalendarInstance {
         schedules.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
 
         if (schedules.length === 0) {
-            list.innerHTML = `<div style="text-align: center; color: var(--text-tertiary); padding: 1rem 0;">予定なし</div>`;
+            list.innerHTML = `<div style="text-align: center; color: var(--text-tertiary); padding: 1.5rem 0;">予定なし</div>`;
         } else {
+            const CATEGORY_COLORS = {
+                '勉強': '#3b82f6',
+                'バイト': '#8b5cf6',
+                '学校': '#10b981',
+                '予定': '#10b981',
+                '遊び': '#f59e0b',
+                'その他': '#64748b'
+            };
+
             schedules.forEach(s => {
                 const item = document.createElement('div');
-                item.className = 'today-schedule-item';
+                item.className = 'today-schedule-item-v2';
                 
                 let timeStr = s.startTime || '終日';
-                if (s.startTime && s.endTime) timeStr = `${s.startTime}〜${s.endTime}`;
+                if (s.startTime && s.endTime) timeStr = `${s.startTime} - ${s.endTime}`;
                 
-                const timeEl = document.createElement('div');
-                timeEl.className = 'time';
-                timeEl.textContent = timeStr;
-                
-                const titleEl = document.createElement('div');
-                titleEl.className = 'title';
-                titleEl.textContent = s.title;
+                const bgColor = s.customColor || CATEGORY_COLORS[s.category] || CATEGORY_COLORS['その他'];
 
-                item.appendChild(timeEl);
-                item.appendChild(titleEl);
-                
-                const CATEGORY_COLORS = {
-                    '勉強': '#3b82f6',
-                    'バイト': '#8b5cf6',
-                    '学校': '#10b981',
-                    '予定': '#10b981',
-                    '遊び': '#f59e0b',
-                    'その他': '#64748b'
-                };
-                
-                if (s.customColor) {
-                    item.style.borderLeftColor = s.customColor;
-                } else {
-                    item.style.borderLeftColor = CATEGORY_COLORS[s.category] || CATEGORY_COLORS['その他'];
-                }
+                // Remove text from icon, make it a solid colored circle or rounded square
+                let iconHtml = `
+                    <div style="width: 14px; height: 14px; border-radius: 4px; background: ${bgColor}; flex-shrink: 0; margin-top: 2px;"></div>
+                `;
+
+                item.innerHTML = `
+                    <div style="display: flex; align-items: flex-start; gap: 12px; width: 100%;">
+                        ${iconHtml}
+                        <div style="font-size: 0.95rem; font-weight: bold; color: #334155; width: 100px; flex-shrink: 0;">
+                            ${timeStr}
+                        </div>
+                        <div style="font-size: 0.95rem; color: #0f172a; flex: 1; overflow: hidden; font-weight: bold; line-height: 1.3;">
+                            ${s.title}
+                        </div>
+                    </div>
+                `;
 
                 item.onclick = () => window.openEditModal(s.id);
                 list.appendChild(item);

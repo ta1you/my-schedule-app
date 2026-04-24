@@ -1998,57 +1998,189 @@ input:checked+.slider:before {
 
 .today-schedule-container { 
     margin: 1rem; 
-    padding: 1rem; 
+    padding: 0; 
     border-radius: 12px; 
-    background: rgba(255, 255, 255, 0.45); 
-    backdrop-filter: blur(20px); 
-    -webkit-backdrop-filter: blur(20px); 
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1); 
-    border: 1px solid rgba(255, 255, 255, 0.4); 
+    background: #ffffff; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    border: 1px solid rgba(0, 0, 0, 0.05); 
+    overflow: hidden;
 }
 
 .today-schedule-header { 
     font-size: 1.1rem; 
     font-weight: 800; 
     color: var(--text-primary); 
-    margin: 0 0 0.75rem 0; 
-    padding-bottom: 0.5rem; 
-    border-bottom: 1px solid var(--border-light); 
+    margin: 0; 
+    padding: 0;
 }
 
-.today-schedule-item { 
+.today-schedule-list-v2 {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+}
+
+.today-schedule-item-v2 { 
     display: flex; 
     align-items: flex-start; 
-    padding: 0.75rem; 
-    margin-bottom: 0.5rem; 
-    background: var(--bg-surface); 
-    border-radius: 8px; 
-    box-shadow: var(--shadow-sm); 
-    border-left: 4px solid var(--text-tertiary); 
+    padding: 12px 16px;
+    background: #ffffff; 
+    border-bottom: 1px solid #e2e8f0; 
     cursor: pointer; 
-    transition: transform 0.1s; 
+    transition: background 0.1s; 
 }
 
-.today-schedule-item:active { 
-    transform: scale(0.98); 
+.today-schedule-item-v2:active { 
+    background: #f8fafc;
 }
 
-.today-schedule-item:last-child { 
-    margin-bottom: 0; 
+.today-schedule-item-v2:last-child { 
+    border-bottom: none; 
 }
 
-.today-schedule-item .time { 
-    font-size: 0.75rem; 
-    font-weight: 700; 
-    color: var(--text-secondary); 
-    min-width: 60px; 
-    margin-right: 0.5rem; 
-    margin-top: 2px; 
+/* iOS Style Weekly/Daily Timeline */
+.ios-week-ribbon {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 15px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
 }
 
-.today-schedule-item .title { 
-    font-size: 0.95rem; 
-    font-weight: 600; 
-    color: var(--text-primary); 
-    white-space: pre-line; 
+.ios-ribbon-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
 }
+
+.ios-ribbon-day.selected {
+    background: #1e293b;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.ios-ribbon-day .day-name {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #64748b;
+    margin-bottom: 2px;
+}
+
+.ios-ribbon-day .day-num {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.ios-ribbon-day.selected .day-num {
+    color: white;
+}
+
+.ios-date-header {
+    text-align: center;
+    padding: 12px 0 8px 0;
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: #334155;
+    background: white;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.ios-timeline-area {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+    background: white;
+    padding-bottom: 50px;
+    height: 60vh; /* Force height so it scrolls on mobile */
+    min-height: 400px;
+}
+
+.ios-timeline-grid {
+    position: relative;
+    height: 1440px; /* 24 hours * 60px = 1440px */
+}
+
+.ios-timeline-row {
+    position: absolute;
+    width: 100%;
+    height: 60px; /* 1 hour = 60px */
+    display: flex;
+    align-items: flex-start;
+}
+
+.ios-timeline-row:nth-child(even) .ios-timeline-line {
+    /* Optional half-hour marks */
+}
+
+.ios-timeline-time {
+    width: 50px;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #94a3b8;
+    margin-top: -8px; /* Center with the line */
+    background: white;
+    z-index: 5;
+}
+
+.ios-timeline-line {
+    flex: 1;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.ios-current-time-line {
+    position: absolute;
+    left: 45px;
+    right: 0;
+    height: 1px;
+    background: #ef4444;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.ios-current-time-dot {
+    position: absolute;
+    left: 0;
+    top: -4px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #ef4444;
+}
+
+.ios-current-time-text {
+    position: absolute;
+    left: -40px;
+    top: -7px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #ef4444;
+}
+
+.ios-timeline-event {
+    position: absolute;
+    left: 55px; /* Offset from time column */
+    width: calc(100% - 65px);
+    border-radius: 6px;
+    border-left: 4px solid;
+    padding: 2px 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.1s, z-index 0s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    z-index: 10;
+}
+
+.ios-timeline-event:active {
+    transform: scale(0.98);
+}
+

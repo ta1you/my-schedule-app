@@ -493,42 +493,9 @@ function setupEventListeners() {
         if (copyBtn) copyBtn.hidden = true;
         selectedCategory = 'その他';
         
-        // 履歴・テンプレート生成
-        const templateContainer = document.getElementById('schedule-templates');
-        if (templateContainer) {
-            const allItems = Storage.getAll();
-            const uniqueTpls = [];
-            const seen = new Set();
-            for (let i = allItems.length - 1; i >= 0; i--) {
-                const item = allItems[i];
-                if (!item.title || !item.startTime || item.title === 'その他') continue;
-                const sig = `${item.title}|${item.startTime}|${item.endTime || ''}`;
-                if (!seen.has(sig)) {
-                    seen.add(sig);
-                    uniqueTpls.push(item);
-                    if (uniqueTpls.length >= 5) break;
-                }
-            }
-            if (uniqueTpls.length > 0) {
-                templateContainer.style.display = 'flex';
-                templateContainer.innerHTML = uniqueTpls.map(u => {
-                    const timeRange = u.startTime + (u.endTime ? '〜' + u.endTime : '');
-                    return `<button type="button" class="btn btn-secondary tpl-btn" style="font-size:0.75rem; padding:6px 10px; white-space:nowrap; border-radius:20px; flex-shrink:0; background:#f1f5f9; border:1px solid #e2e8f0; color:#3b82f6;" data-title="${u.title}" data-start="${u.startTime}" data-end="${u.endTime||''}">${u.title} (${timeRange})</button>`;
-                }).join('');
-                
-                templateContainer.querySelectorAll('.tpl-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        document.getElementById('title').value = e.target.dataset.title;
-                        document.getElementById('start-time').value = e.target.dataset.start;
-                        document.getElementById('end-time').value = e.target.dataset.end;
-                        // Trigger input event for auto-category selection
-                        document.getElementById('title').dispatchEvent(new Event('input'));
-                    });
-                });
-            } else {
-                templateContainer.style.display = 'none';
-            }
-        }
+        // The new template manager is explicitly opened via the button in the modal.
+        // It will call window.openTemplateManager()
+
         
         if (modal.showModal) {
             modal.showModal();
@@ -656,125 +623,117 @@ function setupEventListeners() {
     // Finance interactions: tooltip, mode toggle, entries list
     function setupFinanceInteractions() {
         const canvas = document.getElementById('finance-chart');
-        const modeSelect = document.getElementById('finance-mode');
-        const tooltip = document.getElementById('finance-tooltip');
         const entriesDiv = document.getElementById('finance-entries');
+        
+        let viewYear = new Date().getFullYear();
+        let viewMonth = new Date().getMonth();
 
-        if (!canvas) {
-            console.warn('finance-chart canvas not found');
-            return;
+        const btnPrev = document.getElementById('finance-prev-month');
+        const btnNext = document.getElementById('finance-next-month');
+        const monthLabel = document.getElementById('finance-month-label');
+
+        function updateMonthLabel() {
+            if (monthLabel) monthLabel.textContent = `${viewYear}年${viewMonth + 1}月 収支`;
         }
 
-        function pad(n) { return n < 10 ? '0' + n : '' + n; }
+        if (btnPrev) btnPrev.addEventListener('click', () => {
+            viewMonth--;
+            if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+            renderAndPopulate();
+        });
+        
+        if (btnNext) btnNext.addEventListener('click', () => {
+            viewMonth++;
+            if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+            renderAndPopulate();
+        });
+
+        const form = document.getElementById('finance-form');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const item = {
+                    id: generateId(),
+                    date: document.getElementById('finance-date').value,
+                    type: document.getElementById('finance-type').value,
+                    investment: document.getElementById('finance-investment').value,
+                    payout: document.getElementById('finance-payout').value,
+                    note: document.getElementById('finance-note').value,
+                };
+                // Make sure to convert strings to numbers in save
+                Finance.save(item);
+                form.reset();
+                document.getElementById('finance-date').value = getTodayString();
+                renderAndPopulate();
+            });
+            
+            // Set initial date
+            const df = document.getElementById('finance-date');
+            if (df && !df.value) df.value = getTodayString();
+        }
 
         function renderAndPopulate() {
             try {
-                const mode = (modeSelect && modeSelect.value) || 'pie';
-                Finance.renderChart(canvas, mode);
+                updateMonthLabel();
+                window.financeViewYear = viewYear;
+                window.financeViewMonth = viewMonth;
+                Finance.renderChart(canvas, 'cumulative');
                 populateEntries();
             } catch (e) {
                 console.error('renderChart error:', e);
             }
         }
 
+        const typeLabels = { slot: '<span style="background:#ec4899; color:white; padding:2px 4px; border-radius:4px; font-size:0.6rem;">スロット</span>', pachinko: '<span style="background:#3b82f6; color:white; padding:2px 4px; border-radius:4px; font-size:0.6rem;">パチンコ</span>', other: '<span style="background:#64748b; color:white; padding:2px 4px; border-radius:4px; font-size:0.6rem;">その他</span>' };
+
         function populateEntries() {
             if (!entriesDiv) return;
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const items = Finance.getMonthlyEntries(year, month);
+            const items = Finance.getMonthlyEntries(viewYear, viewMonth);
             if (!items || items.length === 0) {
-                entriesDiv.innerHTML = `<div style="color:var(--text-secondary); text-align:center; padding:1rem;">今月のデータはありません</div>`;
+                entriesDiv.innerHTML = `<div style="text-align:center; padding:1.5rem; color:#94a3b8; grid-column: 1 / -1;">データがありません</div>`;
                 return;
             }
 
-            // Sort by date desc
+            // Descending sort for data table display
             items.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            entriesDiv.innerHTML = '<h4 style="font-size:0.9rem; margin-bottom:0.5rem; border-left:3px solid var(--primary-color); padding-left:8px;">履歴</h4>' + items.map(it => {
+            entriesDiv.innerHTML = items.map(it => {
                 const day = new Date(it.date).getDate();
-                const isIncome = it.type === 'income';
-                const color = isIncome ? 'var(--success-color)' : 'var(--text-primary)';
-                const sign = isIncome ? '+' : '';
+                const inv = Number(it.investment) || 0;
+                const pay = Number(it.payout) || 0;
+                const bal = pay - inv;
+                
+                const balColor = bal > 0 ? '#ec4899' : (bal < 0 ? '#3b82f6' : '#64748b');
+                const balSign = bal > 0 ? '+' : '';
+                const typeHtml = typeLabels[it.type] || typeLabels.other;
+
                 return `
-                    <div class="finance-entry" style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border-radius:8px; margin-bottom:8px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
-                        <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:0.8rem; color:var(--text-tertiary);">${day}日 · ${it.category}</span>
-                            <span style="font-size:0.9rem; font-weight:500;">${it.note || '-'}</span>
+                    <div style="display: grid; grid-template-columns: 35px 50px 1fr 1fr 1fr 30px; border-bottom: 1px solid #f1f5f9; padding: 10px 5px; align-items: center; text-align: right;">
+                        <span style="text-align: center; font-weight: bold; color: #475569;">${day}</span>
+                        <div style="text-align: center; display:flex; flex-direction:column; gap:3px; align-items:center;">
+                            ${typeHtml}
+                            <span style="font-size:0.6rem; color:#94a3b8; max-width:48px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${it.note || ''}">${it.note || ''}</span>
                         </div>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="font-weight:700; color:${color}; font-size:1rem;">${sign}￥${Number(it.amount).toLocaleString()}</span>
-                            <button class="btn-del" data-id="${it.id}" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:1.2rem;">×</button>
-                        </div>
+                        <span style="color: #64748b; font-family: monospace;">${inv.toLocaleString()}</span>
+                        <span style="color: #64748b; font-family: monospace;">${pay.toLocaleString()}</span>
+                        <span style="font-weight: bold; color: ${balColor}; font-family: monospace;">${balSign}${bal.toLocaleString()}</span>
+                        <button class="btn-del" data-id="${it.id}" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:1.1rem; padding:0; text-align:center;">×</button>
                     </div>`;
             }).join('');
         }
-
+        
         // delegate delete
         if (entriesDiv) entriesDiv.addEventListener('click', (e) => {
             const b = e.target.closest('.btn-del');
             if (!b) return;
             const id = b.dataset.id;
             if (!id) return;
-            if (!confirm('この収支を削除しますか？')) return;
+            if (!confirm('この収支記録を削除しますか？')) return;
             Finance.delete(id);
             renderAndPopulate();
         });
 
-        // tooltip interactions
-        if (canvas) {
-            canvas.addEventListener('mousemove', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const points = Finance.getLastPoints() || [];
-                let closest = null;
-                let minDist = 12; // px
-                for (let p of points) {
-                    const dx = x - p.x;
-                    const dy = y - p.y;
-                    const d = Math.hypot(dx, dy);
-                    if (d < minDist) { closest = p; minDist = d; }
-                }
-                if (closest) {
-                    const now = new Date();
-                    const year = now.getFullYear();
-                    const month = now.getMonth();
-                    const day = closest.day || Math.ceil((closest.x - 36) / ((canvas.clientWidth - 72) / new Date(year, month + 1, 0).getDate()));
-                    const dateStr = `${year}-${pad(month + 1)}-${pad(day)}`;
-                    const items = Finance.getMonthlyEntries(year, month).filter(it => it.date === dateStr);
-                    let totalInvest = 0, totalPayout = 0;
-                    const rows = items.map(it => {
-                        totalInvest += Number(it.investment) || 0;
-                        totalPayout += Number(it.payout) || 0;
-                        const amt = Number(it.amount) || (Number(it.payout) || 0) - (Number(it.investment) || 0);
-                        return `<div style="margin-top:4px;">${it.type || 'その他'} ${it.note ? '・' + it.note : ''}<br>投:${(it.investment || 0).toLocaleString()} 回:${(it.payout || 0).toLocaleString()} 差額:￥${amt.toLocaleString()}</div>`;
-                    }).join('');
-                    const net = totalPayout - totalInvest;
-                    if (tooltip) {
-                        tooltip.innerHTML = `<div style="font-weight:700;">${day}日</div><div>投:${totalInvest.toLocaleString()} 回:${totalPayout.toLocaleString()} 差額:￥${net.toLocaleString()}</div>${rows}`;
-                        tooltip.hidden = false;
-                        tooltip.style.left = `${e.clientX - rect.left}px`;
-                        tooltip.style.top = `${e.clientY - rect.top - 12}px`;
-                    }
-                } else if (tooltip) {
-                    tooltip.hidden = true;
-                }
-            });
-
-            canvas.addEventListener('mouseleave', () => {
-                const tooltip = document.getElementById('finance-tooltip');
-                if (tooltip) tooltip.hidden = true;
-            });
-        }
-
-        // mode change
-        if (modeSelect) modeSelect.addEventListener('change', renderAndPopulate);
-
-        // expose a renderer so other handlers can call it
         window.renderFinanceView = renderAndPopulate;
-
-        // initial populate
         renderAndPopulate();
     }
 
@@ -890,7 +849,132 @@ function setupEventListeners() {
     setupKakeiboInteractions();
     setupBookkeepingInteractions();
     setupNotesInteractions();
+    setupTemplateManagerInteractions();
 }
+
+// Template Manager Implementation
+function setupTemplateManagerInteractions() {
+    let currentTab = 'templates'; // 'templates' or 'history'
+    
+    window.openTemplateManager = () => {
+        const modal = document.getElementById('template-manager-modal');
+        if (modal) {
+            if (modal.showModal) modal.showModal();
+            else modal.setAttribute('open', '');
+            renderTemplateList();
+        }
+    };
+    
+    const tabTemplates = document.getElementById('tab-templates');
+    const tabHistory = document.getElementById('tab-history');
+    
+    if (tabTemplates && tabHistory) {
+        tabTemplates.addEventListener('click', () => {
+            currentTab = 'templates';
+            tabTemplates.style.background = '#3b82f6';
+            tabTemplates.style.color = 'white';
+            tabHistory.style.background = 'transparent';
+            tabHistory.style.color = '#64748b';
+            renderTemplateList();
+        });
+        
+        tabHistory.addEventListener('click', () => {
+            currentTab = 'history';
+            tabHistory.style.background = '#3b82f6';
+            tabHistory.style.color = 'white';
+            tabTemplates.style.background = 'transparent';
+            tabTemplates.style.color = '#64748b';
+            renderTemplateList();
+        });
+    }
+
+    const btnAdd = document.getElementById('btn-template-manager-add');
+    if (btnAdd) {
+        btnAdd.addEventListener('click', () => {
+            alert('独自テンプレートの作成画面は準備中です。（現在は履歴からのみ自動生成されます）');
+            // 将来的にカスタムテンプレート作成モーダルを開く
+        });
+    }
+    
+    function renderTemplateList() {
+        const listDiv = document.getElementById('template-manager-list');
+        if (!listDiv) return;
+        
+        listDiv.innerHTML = ''; // clear
+        
+        let displayItems = [];
+        
+        if (currentTab === 'history' || currentTab === 'templates') { // For now, both show history since custom templates aren't fully CRUDed yet
+            const allItems = Storage.getAll();
+            const seen = new Set();
+            for (let i = allItems.length - 1; i >= 0; i--) {
+                const item = allItems[i];
+                if (!item.title || !item.startTime || item.title === 'その他') continue;
+                const sig = `${item.title}|${item.startTime}|${item.endTime || ''}`;
+                if (!seen.has(sig)) {
+                    seen.add(sig);
+                    displayItems.push(item);
+                    if (displayItems.length >= 15) break; 
+                }
+            }
+        }
+        
+        if (displayItems.length === 0) {
+            listDiv.innerHTML = `<div style="text-align:center; color: var(--text-tertiary); padding: 2rem;">データがありません</div>`;
+            return;
+        }
+        
+        const CATEGORY_COLORS = {
+            '勉強': '#3b82f6',
+            'バイト': '#8b5cf6',
+            '学校': '#10b981',
+            '予定': '#10b981',
+            '遊び': '#f59e0b',
+            'その他': '#64748b'
+        };
+        
+        displayItems.forEach(u => {
+            const timeRange = u.startTime + (u.endTime ? ' - ' + u.endTime : '');
+            const bgColor = u.customColor || CATEGORY_COLORS[u.category] || CATEGORY_COLORS['その他'];
+            
+            const itemHtml = `
+                <div class="template-card" style="display: flex; align-items: center; background: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #f1f5f9; position: relative; overflow: hidden; transition: transform 0.1s;">
+                    <div style="position: absolute; left: 0; top: 12px; bottom: 12px; width: 5px; background: ${bgColor}; border-radius: 0 4px 4px 0;"></div>
+                    <div style="width: 80px; font-weight: bold; color: #64748b; font-size: 0.85rem; text-align: center; margin-left: 10px;">
+                        ${timeRange === '終日' ? '<span style="color:#94a3b8">終日</span>' : timeRange.replace(' - ', '<br>')}
+                    </div>
+                    <div style="flex: 1; padding-left: 15px; border-left: 1px solid #f1f5f9; font-weight: bold; font-size: 1.05rem; color: #1e293b; line-height: 1.3;">
+                        ${u.title}
+                    </div>
+                </div>
+            `;
+            
+            const div = document.createElement('div');
+            div.innerHTML = itemHtml;
+            const el = div.firstElementChild;
+            
+            el.addEventListener('click', () => {
+                document.getElementById('title').value = u.title;
+                document.getElementById('start-time').value = u.startTime;
+                document.getElementById('end-time').value = u.endTime || '';
+                // Trigger input event for auto-category selection
+                document.getElementById('title').dispatchEvent(new Event('input'));
+                
+                // Close template manager modal
+                const modal = document.getElementById('template-manager-modal');
+                if (modal) modal.close();
+            });
+            
+            el.addEventListener('mousedown', () => el.style.background = '#f8fafc');
+            el.addEventListener('mouseup', () => el.style.background = 'white');
+            el.addEventListener('touchstart', () => el.style.background = '#f8fafc', {passive: true});
+            el.addEventListener('touchend', () => el.style.background = 'white');
+            
+            listDiv.appendChild(el);
+        });
+    }
+}
+
 
 // Separate Kakeibo setup
 function setupKakeiboInteractions() {
