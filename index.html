@@ -45,249 +45,6 @@
                     🗑️ 定期予定の一括削除
                 </button>
             </div>
-            <div id="finance-view" class="finance-view" hidden style="padding:0; background: #e2e8f0; min-height: 100vh;">
-                <!-- Chart Area (Dark Mode) -->
-                <div style="background: #1e1e1e; padding: 1rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 1rem; margin-bottom: 0.5rem;">
-                        <button type="button" id="finance-prev-month" style="background:rgba(255,255,255,0.1); border:none; color:white; width: 32px; height: 32px; border-radius: 4px; cursor:pointer;">&lt;</button>
-                        <h3 id="finance-month-label" style="margin: 0; color: white; font-size: 1.1rem; font-weight: 700; letter-spacing: 1px;">2026年4月 収支</h3>
-                        <button type="button" id="finance-next-month" style="background:rgba(255,255,255,0.1); border:none; color:white; width: 32px; height: 32px; border-radius: 4px; cursor:pointer;">&gt;</button>
-                    </div>
-                    
-                    <div id="finance-legend" style="color:white; font-size:0.9rem; padding: 0.5rem 1rem; text-align:center;">
-                        <!-- Summary goes here -->
-                    </div>
-
-                    <div style="position:relative; padding: 0 0.5rem; height: 260px; width: 100%;">
-                        <canvas id="finance-chart" style="width: 100%; height: 100%;"></canvas>
-                        <div id="finance-tooltip" class="finance-tooltip" hidden></div>
-                    </div>
-                </div>
-
-                <!-- Input Form (Compact Data Counter Style) -->
-                <div style="padding: 1rem;">
-                    <form id="finance-form" style="display: flex; flex-direction: column; gap: 0.5rem; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="date" id="finance-date" required style="flex:1; padding:0.6rem; border:1px solid #cbd5e1; border-radius:4px; font-weight:600;">
-                            <select id="finance-type" style="flex:1; padding:0.6rem; border:1px solid #cbd5e1; border-radius:4px; font-weight:600;">
-                                <option value="slot">スロット</option>
-                                <option value="pachinko">パチンコ</option>
-                                <option value="other">その他</option>
-                            </select>
-                        </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="number" id="finance-investment" placeholder="投資 (円)" required style="flex:1; padding:0.6rem; border:1px solid #cbd5e1; border-radius:4px; font-weight:600; font-size:1.1rem;">
-                            <input type="number" id="finance-payout" placeholder="回収 (円)" required style="flex:1; padding:0.6rem; border:1px solid #cbd5e1; border-radius:4px; font-weight:600; font-size:1.1rem;">
-                        </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="text" id="finance-note" placeholder="機種名・メモ" style="flex:2; padding:0.6rem; border:1px solid #cbd5e1; border-radius:4px;">
-                            <button type="submit" class="btn" style="flex:1; background: #ec4899; color:white; border:none; border-radius:4px; font-weight:bold; font-size:1rem;">登録</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Data Table List -->
-                <div style="padding: 0 1rem 2rem;">
-                    <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <div style="display: grid; grid-template-columns: 35px 50px 1fr 1fr 1fr 30px; background: #f1f5f9; padding: 10px 5px; font-size: 0.75rem; font-weight: bold; color: #475569; text-align: right;">
-                            <span style="text-align: center;">日</span>
-                            <span style="text-align: center;">種別</span>
-                            <span>投資</span>
-                            <span>回収</span>
-                            <span>収支</span>
-                            <span></span>
-                        </div>
-                        <div class="finance-entries" id="finance-entries" style="font-size:0.85rem; display:flex; flex-direction:column;">
-                            <!-- populated by JS -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="kakeibo-view" class="finance-view" hidden style="padding:1rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <button id="kakeibo-prev-month"
-                        style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary);">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M15 18l-6-6 6-6" />
-                        </svg>
-                    </button>
-                    <h3 id="kakeibo-month-label" style="margin: 0; font-size: 1.1rem;">家計簿</h3>
-                    <button id="kakeibo-next-month"
-                        style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary);">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M9 18l6-6-6-6" />
-                        </svg>
-                    </button>
-                </div>
-                <div id="kakeibo-legend"
-                    style="background: white; padding: 1rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1rem;">
-                </div>
-
-                <form id="kakeibo-form"
-                    style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem;">
-                    <div class="segment-group">
-                        <div class="segment-item">
-                            <input type="radio" name="ktype" value="expense" id="ktype-expense" checked
-                                class="segment-input">
-                            <label for="ktype-expense" class="segment-label">支出</label>
-                        </div>
-                        <div class="segment-item">
-                            <input type="radio" name="ktype" value="income" id="ktype-income" class="segment-input">
-                            <label for="ktype-income" class="segment-label">収入</label>
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <input type="date" id="kakeibo-date" required
-                            style="padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; width: 100%;">
-                        <select id="kakeibo-category"
-                            style="padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; width: 100%;">
-                            <option value="食費">食費</option>
-                            <option value="交通費">交通費</option>
-                            <option value="娯楽">娯楽</option>
-                            <option value="日用品">日用品</option>
-                            <option value="家賃">家賃</option>
-                            <option value="通信費">通信費</option>
-                            <option value="給料">給料</option>
-                            <option value="その他">その他</option>
-                        </select>
-                    </div>
-
-                    <div style="margin-bottom: 0.5rem;">
-                        <input type="number" id="kakeibo-amount" placeholder="金額 (円)" required
-                            style="padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; width: 100%; font-size: 1.1rem;">
-                    </div>
-
-                    <div style="display: flex; gap: 0.5rem;">
-                        <input type="text" id="kakeibo-note" placeholder="メモ (任意)"
-                            style="padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; flex: 1;">
-                        <button type="submit" class="btn btn-primary"
-                            style="padding: 0 1.5rem; border-radius: 8px;">登録</button>
-                    </div>
-                </form>
-
-                <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:0.5rem;">
-                    <h4 style="margin:0; font-size: 1rem;">分析グラフ</h4>
-                    <select id="kakeibo-mode"
-                        style="padding: 4px 8px; border:1px solid var(--border-color); border-radius:6px; font-size: 0.85rem;">
-                        <option value="pie">カテゴリ割合</option>
-                        <option value="daily">日別グラフ</option>
-                        <option value="cumulative">累積推移</option>
-                    </select>
-                </div>
-                <div style="position:relative;">
-                    <canvas id="kakeibo-chart" width="800" height="300" style="max-width:100%; height:300px;"></canvas>
-                </div>
-                <div id="kakeibo-category-list" style="margin-top: 1rem;"></div>
-                <div id="kakeibo-entries" style="margin-top:0.75rem;"></div>
-            </div>
-
-            <div id="bookkeeping-view" class="finance-view" hidden style="padding:1rem;">
-                <h3 style="margin-top:0; font-size:1.1rem; text-align:center;">帳簿</h3>
-
-                <div class="view-toggle"
-                    style="width:100%; justify-content:center; margin-bottom:1rem; background: #f1f5f9;">
-                    <button type="button" class="btn active" id="btn-book-input">仕訳入力</button>
-                    <button type="button" class="btn" id="btn-book-journal">仕訳帳</button>
-                    <button type="button" class="btn" id="btn-book-ledger">総勘定元帳</button>
-                </div>
-
-                <!-- Input View -->
-                <div id="book-input-section">
-                    <form id="bookkeeping-form" style="background: #f8fafc; padding: 1rem; border-radius: 12px;">
-                        <div style="margin-bottom: 0.75rem;">
-                            <label style="font-size:0.8rem; color:var(--text-secondary);">日付</label>
-                            <input type="date" id="book-date" required>
-                        </div>
-                        <div
-                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
-                            <div>
-                                <label style="font-size:0.8rem; color:var(--text-secondary);">借方 (Debit)</label>
-                                <select id="book-debit" required>
-                                    <option value="">選択してください</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label style="font-size:0.8rem; color:var(--text-secondary);">貸方 (Credit)</label>
-                                <select id="book-credit" required>
-                                    <option value="">選択してください</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div style="margin-bottom: 1rem;">
-                            <label style="font-size:0.8rem; color:var(--text-secondary);">金額</label>
-                            <input type="number" id="book-amount" placeholder="金額を入力" required
-                                style="font-size:1.1rem;">
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width:100%;">仕訳を登録</button>
-                    </form>
-                </div>
-
-                <!-- Journal View -->
-                <div id="book-journal-section" hidden>
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; background: #f8fafc; padding: 10px; border-radius: 12px;">
-                        <button id="book-prev-month"
-                            style="background: white; border: 1px solid var(--border-light); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary);">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M15 18l-6-6 6-6" />
-                            </svg>
-                        </button>
-                        <h4 id="book-month-label" style="margin: 0; font-size: 1rem; font-weight: 600;">2026年2月</h4>
-                        <button id="book-next-month"
-                            style="background: white; border: 1px solid var(--border-light); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary);">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M9 18l6-6-6-6" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div id="journal-list" class="journal-list"></div>
-                </div>
-
-                <!-- Ledger View -->
-                <div id="book-ledger-section" hidden>
-                    <div style="margin-bottom:1rem;">
-                        <select id="ledger-account-select" style="padding:10px; border-radius:8px;">
-                            <option value="">科目を選択してください</option>
-                        </select>
-                    </div>
-                    <div class="ledger-header"
-                        style="display:grid; grid-template-columns: 45px 1fr 80px 80px; gap:4px; font-size:0.75rem; color:var(--text-secondary); font-weight:bold; padding-bottom:4px; border-bottom:1px solid var(--border-light);">
-                        <span>日付</span><span>相手科目</span><span style="text-align:right;">借方</span><span
-                            style="text-align:right;">貸方</span>
-                    </div>
-                    <div id="ledger-list" class="ledger-list" style="margin-top:0.5rem;"></div>
-                    <div id="ledger-balance"
-                        style="margin-top:1rem; padding:1rem; background:#f8fafc; border-radius:8px; text-align:right; font-weight:bold; font-size:1.1rem; color:var(--primary-dark);">
-                    </div>
-                </div>
-            </div>
-
-            <div id="notes-view" class="finance-view" hidden style="padding:1rem;">
-                <h3 style="margin-top:0; font-size:1.1rem; text-align:center;">付箋</h3>
-
-                <form id="note-form" class="note-form">
-                    <input type="text" id="note-title" class="note-title-input" placeholder="タイトル" autocomplete="off">
-                    <textarea id="note-content" class="note-content-input" placeholder="メモを入力..." rows="3"></textarea>
-
-                    <div class="note-form-footer">
-                        <input type="date" id="note-date" class="note-date-input">
-                        <label for="note-image-input" class="btn btn-secondary btn-note-image">
-                            📷 画像
-                            <input type="file" id="note-image-input" accept="image/*" style="display:none;">
-                        </label>
-                        <div id="note-image-preview" class="note-image-preview"></div>
-                        <button type="submit" class="btn btn-primary btn-note-save">保存</button>
-                    </div>
-                </form>
-
-                <div id="notes-container"></div>
-            </div>
 
             <!-- Image Modal -->
             <div id="image-modal" class="image-modal" style="display:none;">
@@ -297,7 +54,7 @@
 
 
             <!-- Custom Tab View (Generic Container) -->
-            <div id="custom-tab-view" class="finance-view" hidden style="padding:1rem;">
+            <div id="custom-tab-view" hidden style="padding:1rem;">
             </div>
 
             <!-- Share View -->
@@ -446,46 +203,6 @@
                     <div class="settings-list-group" id="nav-toggles-list">
                         <!-- Note: standard tabs toggles will remain, we add custom tab manager below -->
                         <div class="settings-list-item">
-                            <div class="settings-icon-box" style="background: #f0fdf4; color: #16a34a;">💰</div>
-                            <div class="settings-item-content">
-                                <span class="settings-item-title">収支</span>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="toggle-finance" checked>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="settings-list-item">
-                            <div class="settings-icon-box" style="background: #fefce8; color: #ca8a04;">🏠</div>
-                            <div class="settings-item-content">
-                                <span class="settings-item-title">家計簿</span>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="toggle-kakeibo" checked>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="settings-list-item">
-                            <div class="settings-icon-box" style="background: #fef2f2; color: #dc2626;">📖</div>
-                            <div class="settings-item-content">
-                                <span class="settings-item-title">帳簿</span>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="toggle-bookkeeping" checked>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="settings-list-item">
-                            <div class="settings-icon-box" style="background: #faf5ff; color: #9333ea;">📌</div>
-                            <div class="settings-item-content">
-                                <span class="settings-item-title">付箋</span>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="toggle-notes" checked>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="settings-list-item">
                             <div class="settings-icon-box" style="background: #eef2ff; color: #4f46e5;">📤</div>
                             <div class="settings-item-content">
                                 <span class="settings-item-title">共有</span>
@@ -549,6 +266,27 @@
                     </div>
                     <div class="settings-list-group" id="custom-tabs-settings-list" style="margin-top: 0;">
                         <!-- Generated dynamically by customTabs.js -->
+                    </div>
+                </details>
+
+                <details class="settings-accordion">
+                    <summary class="settings-section-header accordion-summary">
+                        データ同期（ログイン不要）
+                        <span class="accordion-icon">▼</span>
+                    </summary>
+                    <div class="settings-list-group">
+                        <div class="settings-list-item" id="btn-show-qr" style="cursor: pointer;">
+                            <div class="settings-icon-box" style="background: #e0e7ff; color: #4338ca;">📱</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">この端末と同期する（QR表示）</span>
+                            </div>
+                        </div>
+                        <div class="settings-list-item" id="btn-scan-qr" style="cursor: pointer;">
+                            <div class="settings-icon-box" style="background: #dcfce7; color: #15803d;">📷</div>
+                            <div class="settings-item-content">
+                                <span class="settings-item-title">他の端末と同期する（QR読取）</span>
+                            </div>
+                        </div>
                     </div>
                 </details>
 
@@ -752,6 +490,58 @@
             </div>
         </div>
     </dialog>
+
+    <!-- QR Code Display Modal -->
+    <dialog id="qr-display-modal" class="modal">
+        <div class="modal-content" style="max-width: 320px; text-align: center;">
+            <div class="modal-header">
+                <h3>同期用QRコード</h3>
+                <button type="button" class="btn-close" id="btn-close-qr-display">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    別の端末から「他の端末と同期する」を選び、このQRコードを読み取ってください。<br>※このコードは他の人に教えないでください。
+                </p>
+                <div id="qrcode-container" style="display: flex; justify-content: center; padding: 1rem; background: white; border-radius: 8px;"></div>
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+                    <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: 0.5rem;">カメラが使えない場合は以下のコードを入力</p>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="sync-code-display" readonly style="flex: 1; padding: 8px; font-family: monospace; font-size: 0.8rem; border: 1px solid var(--border-light); border-radius: 4px; background: #f8fafc; text-align: center;">
+                        <button type="button" id="btn-copy-sync-code" class="btn btn-secondary" style="padding: 4px 12px; font-size: 0.8rem;">コピー</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- QR Code Scanner Modal -->
+    <dialog id="qr-scan-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>QRコード読み取り</h3>
+                <button type="button" class="btn-close" id="btn-close-qr-scan">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    同期元となる端末のQRコードをカメラで写してください。
+                </p>
+                <div id="qr-reader" style="width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 1rem;"></div>
+                <div style="text-align: center;">
+                    <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: 0.5rem;">またはコードを手動入力</p>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="sync-code-input" placeholder="同期コードを入力" style="flex: 1; padding: 8px; font-family: monospace; font-size: 0.9rem; border: 1px solid var(--border-light); border-radius: 4px;">
+                        <button type="button" id="btn-submit-sync-code" class="btn btn-primary" style="padding: 4px 12px; font-size: 0.9rem;">同期</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <div id="sync-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
+        <div style="font-size: 3rem; animation: spin 1s linear infinite;">🔄</div>
+        <div style="margin-top: 1rem; font-weight: bold; color: var(--primary-dark);">データを統合しています...</div>
+        <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+    </div>
 
     <!-- Wallpaper Crop Modal -->
     <dialog id="crop-modal" class="modal" style="width: 100%; height: 100vh; max-width: 100%; max-height: 100vh; padding: 0; margin: 0; background: #000; border: none;">
@@ -994,22 +784,7 @@
             <span class="nav-icon">📤</span>
             <span class="nav-label">共有</span>
         </button>
-        <button type="button" class="nav-item" id="btn-finance">
-            <span class="nav-icon">💰</span>
-            <span class="nav-label">収支</span>
-        </button>
-        <button type="button" class="nav-item" id="btn-kakeibo">
-            <span class="nav-icon">🏠</span>
-            <span class="nav-label">家計簿</span>
-        </button>
-        <button type="button" class="nav-item" id="btn-bookkeeping">
-            <span class="nav-icon">📖</span>
-            <span class="nav-label">帳簿</span>
-        </button>
-        <button type="button" class="nav-item" id="btn-notes">
-            <span class="nav-icon">📌</span>
-            <span class="nav-label">付箋</span>
-        </button>
+
         <button type="button" class="nav-item" id="btn-settings">
             <span class="nav-icon">⚙️</span>
             <span class="nav-label">設定</span>
@@ -1021,6 +796,10 @@
     <!-- Firebase SDKs (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <!-- QR Code Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
     <script type="module" src="js/app.js"></script>
 </body>

@@ -26,5 +26,12 @@ export const Auth = {
     // Get current user (device) ID
     getUserId() {
         return this.deviceId;
+    },
+
+    // Set new device ID (for QR sync)
+    setDeviceId(newId) {
+        this.deviceId = newId;
+        SafeStorage.setItem('deviceId', newId);
+        console.log('Device IDが更新されました:', newId);
     }
 };

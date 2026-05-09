@@ -7,10 +7,6 @@ export const Settings = {
     defaults: {
         showList: true,
         showCalendar: true,
-        showFinance: false,
-        showKakeibo: false,
-        showBookkeeping: false,
-        showNotes: false,
         calendarStart: 5,
         calendarEnd: 24,
         backgroundImage: null,
@@ -92,10 +88,6 @@ export const Settings = {
                 
                 // One-time auto-hide migration for users who had them implicitly on before
                 if (!this.prefs._v2_nav_migrated) {
-                    this.prefs.showFinance = false;
-                    this.prefs.showKakeibo = false;
-                    this.prefs.showBookkeeping = false;
-                    this.prefs.showNotes = false;
                     this.prefs._v2_nav_migrated = true;
                     // Don't call this.save() here as it causes a loop or pre-mature DOM apply. 
                     // It will stay in memory until next user save, but apply() will hide them anyway.
@@ -125,10 +117,6 @@ export const Settings = {
 
     // Update form states based on current prefs
     updateUI() {
-        const toggleFinance = document.getElementById('toggle-finance');
-        const toggleKakeibo = document.getElementById('toggle-kakeibo');
-        const toggleBookkeeping = document.getElementById('toggle-bookkeeping');
-        const toggleNotes = document.getElementById('toggle-notes');
         const calStart = document.getElementById('setting-calendar-start');
         const calEnd = document.getElementById('setting-calendar-end');
         const btnBgClear = document.getElementById('btn-bg-clear');
@@ -140,10 +128,6 @@ export const Settings = {
         const toggleTodaySchedule = document.getElementById('toggle-today-schedule');
         const toggleScheduleImport = document.getElementById('toggle-schedule-import');
 
-        if (toggleFinance) toggleFinance.checked = this.prefs.showFinance;
-        if (toggleKakeibo) toggleKakeibo.checked = this.prefs.showKakeibo;
-        if (toggleBookkeeping) toggleBookkeeping.checked = this.prefs.showBookkeeping;
-        if (toggleNotes) toggleNotes.checked = this.prefs.showNotes;
         if (calStart) calStart.value = this.prefs.calendarStart;
         if (calEnd) calEnd.value = this.prefs.calendarEnd;
         if (btnBgClear) btnBgClear.style.display = this.prefs.backgroundImage ? 'flex' : 'none';
@@ -216,16 +200,8 @@ export const Settings = {
 
     // Apply settings
     apply() {
-        const btnFinance = document.getElementById('btn-finance');
-        const btnKakeibo = document.getElementById('btn-kakeibo');
-        const btnBookkeeping = document.getElementById('btn-bookkeeping');
-        const btnNotes = document.getElementById('btn-notes');
         const btnShare = document.getElementById('btn-share');
 
-        if (btnFinance) btnFinance.style.display = this.prefs.showFinance ? '' : 'none';
-        if (btnKakeibo) btnKakeibo.style.display = this.prefs.showKakeibo ? '' : 'none';
-        if (btnBookkeeping) btnBookkeeping.style.display = this.prefs.showBookkeeping ? '' : 'none';
-        if (btnNotes) btnNotes.style.display = this.prefs.showNotes ? '' : 'none';
         if (btnShare) btnShare.style.display = this.prefs.showShare !== false ? '' : 'none';
 
         if (this.prefs.backgroundImage) {
@@ -257,10 +233,6 @@ export const Settings = {
 
     // Setup event listeners for settings controls
     setupEventListeners() {
-        const tFinance = document.getElementById('toggle-finance');
-        const tKakeibo = document.getElementById('toggle-kakeibo');
-        const tBookkeeping = document.getElementById('toggle-bookkeeping');
-        const tNotes = document.getElementById('toggle-notes');
         const calStart = document.getElementById('setting-calendar-start');
         const calEnd = document.getElementById('setting-calendar-end');
         const tShiftSalary = document.getElementById('toggle-shift-salary');
@@ -285,10 +257,6 @@ export const Settings = {
             }
         });
 
-        if (tFinance) tFinance.addEventListener('change', (e) => { this.prefs.showFinance = e.target.checked; this.save(); });
-        if (tKakeibo) tKakeibo.addEventListener('change', (e) => { this.prefs.showKakeibo = e.target.checked; this.save(); });
-        if (tBookkeeping) tBookkeeping.addEventListener('change', (e) => { this.prefs.showBookkeeping = e.target.checked; this.save(); });
-        if (tNotes) tNotes.addEventListener('change', (e) => { this.prefs.showNotes = e.target.checked; this.save(); });
         if (tShare) tShare.addEventListener('change', (e) => { this.prefs.showShare = e.target.checked; this.save(); });
         if (tTodaySchedule) {
             tTodaySchedule.addEventListener('change', (e) => {

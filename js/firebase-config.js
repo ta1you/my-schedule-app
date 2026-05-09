@@ -22,6 +22,17 @@ try {
     if (typeof firebase !== 'undefined') {
         app = firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
+        
+        // オフラインデータの永続化を有効にする
+        db.enablePersistence({ synchronizeTabs: true })
+            .catch((err) => {
+                if (err.code == 'failed-precondition') {
+                    console.warn('複数タブが開かれているため、オフライン永続化が有効になりません。');
+                } else if (err.code == 'unimplemented') {
+                    console.warn('このブラウザはオフライン永続化をサポートしていません。');
+                }
+            });
+            
         console.log('Firebase initialized');
     } else {
         console.warn('Firebase SDK not loaded');

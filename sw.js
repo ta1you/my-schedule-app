@@ -1,4 +1,4 @@
-const CACHE_NAME = 'schedule-app-v20'; // ← ★更新ごとに変える
+const CACHE_NAME = 'schedule-app-v21'; // ← ★更新ごとに変える
 const ASSETS = [
     './',
     './index.html',
@@ -8,15 +8,14 @@ const ASSETS = [
     './js/storage.js',
     './js/utils.js',
     './js/calendar.js',
-    './js/finance.js',
-    './js/kakeibo.js',
-    './js/bookkeeping.js',
-    './js/notes.js',
     './js/settings.js',
     './js/customTabs.js',
     './js/share.js',
     './js/calendarSync.js',
     './js/import.js',
+    './js/auth.js',
+    './js/firebase-config.js',
+    './js/qrSync.js',
     './manifest.json'
 ];
 

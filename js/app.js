@@ -2,15 +2,13 @@ import { Storage } from './storage.js';
 import { UI } from './ui.js';
 import { generateId, getTodayString } from './utils.js';
 import { Calendar, CalendarInstance } from './calendar.js';
-import { Finance } from './finance.js';
-import { Kakeibo } from './kakeibo.js';
-import { Bookkeeping } from './bookkeeping.js';
-import { Notes } from './notes.js';
+
 import { Settings } from './settings.js';
 import { CustomTabs } from './customTabs.js';
 import { ShareFeature } from './share.js';
 import { ScheduleImportManager } from './import.js?v=2';
 import { Notifications } from './notifications.js';
+import { setupQRSyncInteractions } from './qrSync.js';
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
@@ -51,21 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.Settings = Settings;
     Notifications.init();
 
-    // Restore missing initializations
-    Finance.init(() => {
-        if (window.renderFinanceView) window.renderFinanceView();
-    });
-    Kakeibo.init(() => {
-        if (window.renderKakeiboView) window.renderKakeiboView();
-    });
-    Bookkeeping.init(() => {
-        if (window.renderBookkeepingView) window.renderBookkeepingView();
-    });
-    Notes.init(() => {
-        if (window.renderNotesView) window.renderNotesView();
-    });
+
     ShareFeature.init();
     ScheduleImportManager.init();
+    setupQRSyncInteractions();
 
     // CustomTabs setup happens in setupEventListeners where setView is accessible
     
@@ -121,16 +108,10 @@ function setupEventListeners() {
     // View Switching
     const btnList = document.getElementById('btn-view-list');
     const btnCalendar = document.getElementById('btn-view-calendar');
-    const btnFinance = document.getElementById('btn-finance');
-    const btnKakeibo = document.getElementById('btn-kakeibo'); // New button
-    const btnBookkeeping = document.getElementById('btn-bookkeeping');
     const btnShare = document.getElementById('btn-share');
     const btnSettings = document.getElementById('btn-settings');
     const listView = document.getElementById('schedule-list');
     const calendarView = document.getElementById('calendar-view');
-    const financeView = document.getElementById('finance-view');
-    const kakeiboView = document.getElementById('kakeibo-view'); // New view
-    const bookkeepingView = document.getElementById('bookkeeping-view');
     const shareView = document.getElementById('share-view');
     const settingsView = document.getElementById('settings-view');
 
@@ -142,11 +123,6 @@ function setupEventListeners() {
         // Hide all views first
         listView.hidden = true;
         calendarView.hidden = true;
-        if (financeView) financeView.hidden = true;
-        if (kakeiboView) kakeiboView.hidden = true;
-        if (bookkeepingView) bookkeepingView.hidden = true;
-        const notesView = document.getElementById('notes-view');
-        if (notesView) notesView.hidden = true;
         if (shareView) shareView.hidden = true;
         const settingsView = document.getElementById('settings-view');
         const customTabView = document.getElementById('custom-tab-view');
@@ -169,11 +145,6 @@ function setupEventListeners() {
         // Deactivate all buttons
         btnList.classList.remove('active');
         btnCalendar.classList.remove('active');
-        if (btnFinance) btnFinance.classList.remove('active');
-        if (btnKakeibo) btnKakeibo.classList.remove('active');
-        if (btnBookkeeping) btnBookkeeping.classList.remove('active');
-        const btnNotes = document.getElementById('btn-notes');
-        if (btnNotes) btnNotes.classList.remove('active');
         if (btnShare) btnShare.classList.remove('active');
         if (btnSettings) btnSettings.classList.remove('active');
         document.querySelectorAll('.ct-nav-btn').forEach(b => b.classList.remove('active'));
@@ -213,49 +184,6 @@ function setupEventListeners() {
             if (importContainer && Settings.prefs && Settings.prefs.showScheduleImport) {
                 importContainer.style.display = 'block';
             }
-        } else if (viewName === 'finance') {
-            if (financeView) financeView.hidden = false;
-            if (btnFinance) btnFinance.classList.add('active');
-            if (categoryTabs) categoryTabs.hidden = true;
-
-            // set default date
-            const fdate = document.getElementById('finance-date');
-            if (fdate) fdate.value = getTodayString();
-
-            if (window.renderFinanceView) window.renderFinanceView();
-
-        } else if (viewName === 'kakeibo') {
-            if (kakeiboView) kakeiboView.hidden = false;
-            if (btnKakeibo) btnKakeibo.classList.add('active');
-            if (categoryTabs) categoryTabs.hidden = true;
-
-            const kdate = document.getElementById('kakeibo-date');
-            if (kdate) kdate.value = getTodayString();
-
-            if (window.renderKakeiboView) window.renderKakeiboView();
-
-        } else if (viewName === 'bookkeeping') {
-            if (bookkeepingView) bookkeepingView.hidden = false;
-            if (btnBookkeeping) btnBookkeeping.classList.add('active');
-            if (categoryTabs) categoryTabs.hidden = true;
-
-            const bdate = document.getElementById('book-date');
-            if (bdate) bdate.value = getTodayString();
-
-            if (window.renderBookkeepingView) window.renderBookkeepingView();
-
-        } else if (viewName === 'notes') {
-            const notesView = document.getElementById('notes-view');
-            const btnNotes = document.getElementById('btn-notes');
-            if (notesView) notesView.hidden = false;
-            if (btnNotes) btnNotes.classList.add('active');
-            if (categoryTabs) categoryTabs.hidden = true;
-
-            const ndate = document.getElementById('note-date');
-            if (ndate) ndate.value = getTodayString();
-
-            if (window.renderNotesView) window.renderNotesView();
-
         } else if (viewName === 'share') {
             if (shareView) {
                 shareView.hidden = false;
@@ -298,12 +226,6 @@ function setupEventListeners() {
 
     btnList.addEventListener('click', () => setView('list'));
     btnCalendar.addEventListener('click', () => setView('calendar'));
-    if (btnFinance) btnFinance.addEventListener('click', () => setView('finance'));
-    if (btnKakeibo) btnKakeibo.addEventListener('click', () => setView('kakeibo'));
-    if (btnBookkeeping) btnBookkeeping.addEventListener('click', () => setView('bookkeeping'));
-    // if (btnCalendarTest) btnCalendarTest.addEventListener('click', () => setView('calendar-test')); // Removed
-    const btnNotes = document.getElementById('btn-notes');
-    if (btnNotes) btnNotes.addEventListener('click', () => setView('notes'));
     if (btnShare) btnShare.addEventListener('click', () => setView('share'));
     if (btnSettings) btnSettings.addEventListener('click', () => setView('settings'));
 
@@ -350,82 +272,8 @@ function setupEventListeners() {
         });
     }
 
-    // Handle finance form submission
-    const financeForm = document.getElementById('finance-form');
-    if (financeForm) {
-        financeForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const date = document.getElementById('finance-date').value;
-            const type = document.getElementById('finance-type').value; // slot/pachinko/other
-            const investment = Number(document.getElementById('finance-investment').value) || 0;
-            const payout = Number(document.getElementById('finance-payout').value) || 0;
-            const note = document.getElementById('finance-note').value || '';
-            const amount = payout - investment; // Calculate profit/loss
-
-            const item = {
-                id: generateId(),
-                date,
-                type,
-                investment,
-                payout,
-                amount,
-                note
-            };
-            Finance.save(item);
-
-            document.getElementById('finance-investment').value = '';
-            document.getElementById('finance-payout').value = '';
-            document.getElementById('finance-note').value = '';
-        });
-    }
-
-    // Handle Kakeibo submit
-    const kakeiboForm = document.getElementById('kakeibo-form');
-    if (kakeiboForm) {
-        // Auto-switch mode based on category
-        const kCategory = document.getElementById('kakeibo-category');
-
-        if (kCategory) {
-            kCategory.addEventListener('change', (e) => {
-                const val = e.target.value;
-                const incomeCategories = ['給料', '臨時収入', 'ボーナス'];
-
-                let targetType = 'expense';
-                if (incomeCategories.includes(val)) {
-                    targetType = 'income';
-                }
-
-                // Switch radio
-                const radio = document.querySelector(`input[name="ktype"][value="${targetType}"]`);
-                if (radio) {
-                    radio.checked = true;
-                }
-            });
-        }
-
-        kakeiboForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const date = document.getElementById('kakeibo-date').value;
-            const amount = Number(document.getElementById('kakeibo-amount').value) || 0;
-            const category = document.getElementById('kakeibo-category').value;
-            const note = document.getElementById('kakeibo-note').value || '';
-            const typeRadio = document.querySelector('input[name="ktype"]:checked');
-            const type = typeRadio ? typeRadio.value : 'expense';
-
-            const item = {
-                id: generateId(),
-                date,
-                type,
-                category,
-                amount,
-                note
-            };
-            Kakeibo.save(item);
-
-            document.getElementById('kakeibo-amount').value = '';
-            document.getElementById('kakeibo-note').value = '';
-        });
-    }
+    // Handle Kakeibo submit 
+    // removed
 
     // Modal category management (derived from title)
     let selectedCategory = 'その他';
@@ -620,235 +468,8 @@ function setupEventListeners() {
         }
     };
 
-    // Finance interactions: tooltip, mode toggle, entries list
-    function setupFinanceInteractions() {
-        const canvas = document.getElementById('finance-chart');
-        const entriesDiv = document.getElementById('finance-entries');
-        
-        let viewYear = new Date().getFullYear();
-        let viewMonth = new Date().getMonth();
+    // Removed finance and bookkeeping
 
-        const btnPrev = document.getElementById('finance-prev-month');
-        const btnNext = document.getElementById('finance-next-month');
-        const monthLabel = document.getElementById('finance-month-label');
-
-        function updateMonthLabel() {
-            if (monthLabel) monthLabel.textContent = `${viewYear}年${viewMonth + 1}月 収支`;
-        }
-
-        if (btnPrev) btnPrev.addEventListener('click', () => {
-            viewMonth--;
-            if (viewMonth < 0) { viewMonth = 11; viewYear--; }
-            renderAndPopulate();
-        });
-        
-        if (btnNext) btnNext.addEventListener('click', () => {
-            viewMonth++;
-            if (viewMonth > 11) { viewMonth = 0; viewYear++; }
-            renderAndPopulate();
-        });
-
-        const form = document.getElementById('finance-form');
-        if (form) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const item = {
-                    id: generateId(),
-                    date: document.getElementById('finance-date').value,
-                    type: document.getElementById('finance-type').value,
-                    investment: document.getElementById('finance-investment').value,
-                    payout: document.getElementById('finance-payout').value,
-                    note: document.getElementById('finance-note').value,
-                };
-                // Make sure to convert strings to numbers in save
-                Finance.save(item);
-                form.reset();
-                document.getElementById('finance-date').value = getTodayString();
-                renderAndPopulate();
-            });
-            
-            // Set initial date
-            const df = document.getElementById('finance-date');
-            if (df && !df.value) df.value = getTodayString();
-        }
-
-        function renderAndPopulate() {
-            try {
-                updateMonthLabel();
-                window.financeViewYear = viewYear;
-                window.financeViewMonth = viewMonth;
-                Finance.renderChart(canvas, 'cumulative');
-                populateEntries();
-            } catch (e) {
-                console.error('renderChart error:', e);
-            }
-        }
-
-        const typeLabels = { slot: '<span style="background:#ec4899; color:white; padding:2px 4px; border-radius:4px; font-size:0.6rem;">スロット</span>', pachinko: '<span style="background:#3b82f6; color:white; padding:2px 4px; border-radius:4px; font-size:0.6rem;">パチンコ</span>', other: '<span style="background:#64748b; color:white; padding:2px 4px; border-radius:4px; font-size:0.6rem;">その他</span>' };
-
-        function populateEntries() {
-            if (!entriesDiv) return;
-            const items = Finance.getMonthlyEntries(viewYear, viewMonth);
-            if (!items || items.length === 0) {
-                entriesDiv.innerHTML = `<div style="text-align:center; padding:1.5rem; color:#94a3b8; grid-column: 1 / -1;">データがありません</div>`;
-                return;
-            }
-
-            // Descending sort for data table display
-            items.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            entriesDiv.innerHTML = items.map(it => {
-                const day = new Date(it.date).getDate();
-                const inv = Number(it.investment) || 0;
-                const pay = Number(it.payout) || 0;
-                const bal = pay - inv;
-                
-                const balColor = bal > 0 ? '#ec4899' : (bal < 0 ? '#3b82f6' : '#64748b');
-                const balSign = bal > 0 ? '+' : '';
-                const typeHtml = typeLabels[it.type] || typeLabels.other;
-
-                return `
-                    <div style="display: grid; grid-template-columns: 35px 50px 1fr 1fr 1fr 30px; border-bottom: 1px solid #f1f5f9; padding: 10px 5px; align-items: center; text-align: right;">
-                        <span style="text-align: center; font-weight: bold; color: #475569;">${day}</span>
-                        <div style="text-align: center; display:flex; flex-direction:column; gap:3px; align-items:center;">
-                            ${typeHtml}
-                            <span style="font-size:0.6rem; color:#94a3b8; max-width:48px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${it.note || ''}">${it.note || ''}</span>
-                        </div>
-                        <span style="color: #64748b; font-family: monospace;">${inv.toLocaleString()}</span>
-                        <span style="color: #64748b; font-family: monospace;">${pay.toLocaleString()}</span>
-                        <span style="font-weight: bold; color: ${balColor}; font-family: monospace;">${balSign}${bal.toLocaleString()}</span>
-                        <button class="btn-del" data-id="${it.id}" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:1.1rem; padding:0; text-align:center;">×</button>
-                    </div>`;
-            }).join('');
-        }
-        
-        // delegate delete
-        if (entriesDiv) entriesDiv.addEventListener('click', (e) => {
-            const b = e.target.closest('.btn-del');
-            if (!b) return;
-            const id = b.dataset.id;
-            if (!id) return;
-            if (!confirm('この収支記録を削除しますか？')) return;
-            Finance.delete(id);
-            renderAndPopulate();
-        });
-
-        window.renderFinanceView = renderAndPopulate;
-        renderAndPopulate();
-    }
-
-    // Backup & Restore
-
-    setupFinanceInteractions();
-
-    function setupBookkeepingInteractions() {
-        const journalList = document.getElementById('journal-list');
-        const form = document.getElementById('bookkeeping-form');
-        const ledgerSelect = document.getElementById('ledger-account-select');
-
-        if (!form) return;
-
-        let viewYear = new Date().getFullYear();
-        let viewMonth = new Date().getMonth();
-
-        function renderAndPopulate() {
-            Bookkeeping.render(viewYear, viewMonth);
-            // Update month label
-            const monthLabel = document.getElementById('book-month-label');
-            if (monthLabel) {
-                monthLabel.textContent = `${viewYear}年${viewMonth + 1}月`;
-            }
-        }
-
-        // Sub-view switching
-        const btnInput = document.getElementById('btn-book-input');
-        const btnJournal = document.getElementById('btn-book-journal');
-        const btnLedger = document.getElementById('btn-book-ledger');
-        const secInput = document.getElementById('book-input-section');
-        const secJournal = document.getElementById('book-journal-section');
-        const secLedger = document.getElementById('book-ledger-section');
-
-        function setSubView(v) {
-            [secInput, secJournal, secLedger].forEach(s => s.hidden = true);
-            [btnInput, btnJournal, btnLedger].forEach(b => b.classList.remove('active'));
-
-            if (v === 'input') {
-                secInput.hidden = false;
-                btnInput.classList.add('active');
-            } else if (v === 'journal') {
-                secJournal.hidden = false;
-                btnJournal.classList.add('active');
-            } else if (v === 'ledger') {
-                secLedger.hidden = false;
-                btnLedger.classList.add('active');
-            }
-            renderAndPopulate();
-        }
-
-        btnInput.addEventListener('click', () => setSubView('input'));
-        btnJournal.addEventListener('click', () => setSubView('journal'));
-        btnLedger.addEventListener('click', () => setSubView('ledger'));
-
-        // Month Navigation for Journal
-        document.getElementById('book-prev-month').addEventListener('click', () => {
-            viewMonth--;
-            if (viewMonth < 0) {
-                viewMonth = 11;
-                viewYear--;
-            }
-            renderAndPopulate();
-        });
-
-        document.getElementById('book-next-month').addEventListener('click', () => {
-            viewMonth++;
-            if (viewMonth > 11) {
-                viewMonth = 0;
-                viewYear++;
-            }
-            renderAndPopulate();
-        });
-
-        // Form submit
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const date = document.getElementById('book-date').value;
-            const debit = document.getElementById('book-debit').value;
-            const credit = document.getElementById('book-credit').value;
-            const amount = Number(document.getElementById('book-amount').value) || 0;
-
-            if (debit === credit) {
-                alert('借方と貸方に同じ科目は選択できません');
-                return;
-            }
-
-            Bookkeeping.saveEntry({ date, debit, credit, amount });
-
-            // Reset form except date
-            document.getElementById('book-amount').value = '';
-            alert('登録しました');
-            setSubView('journal'); // Switch to journal to see entry
-        });
-
-        // Ledger change
-        if (ledgerSelect) {
-            ledgerSelect.addEventListener('change', renderAndPopulate);
-        }
-
-        // Global delete
-        window.deleteBookEntry = (id) => {
-            if (confirm('この仕訳を削除しますか？')) {
-                Bookkeeping.deleteEntry(id);
-                renderAndPopulate();
-            }
-        };
-
-        window.renderBookkeepingView = renderAndPopulate;
-        renderAndPopulate();
-    }
-
-    setupKakeiboInteractions();
-    setupBookkeepingInteractions();
-    setupNotesInteractions();
     setupTemplateManagerInteractions();
 }
 
@@ -976,237 +597,6 @@ function setupTemplateManagerInteractions() {
 }
 
 
-// Separate Kakeibo setup
-function setupKakeiboInteractions() {
-    const canvas = document.getElementById('kakeibo-chart');
-    const modeSelect = document.getElementById('kakeibo-mode');
-    const entriesDiv = document.getElementById('kakeibo-entries');
-
-    if (!canvas) return;
-
-    let activeCategoryFilter = null;
-    let viewYear = new Date().getFullYear();
-    let viewMonth = new Date().getMonth();
-
-    function renderAndPopulate() {
-        const mode = (modeSelect && modeSelect.value) || 'pie';
-        // Pass year and month to methods
-        Kakeibo.renderChart(canvas, mode, viewYear, viewMonth);
-        updateCategorySelectionUI();
-
-        // Update Title and Populate List
-        const titleLabel = document.getElementById('kakeibo-month-label');
-        if (titleLabel) {
-            titleLabel.textContent = `${viewYear}年${viewMonth + 1}月`;
-        }
-        populateEntries();
-    }
-
-    // Navigation Listeners
-    const prevBtn = document.getElementById('kakeibo-prev-month');
-    const nextBtn = document.getElementById('kakeibo-next-month');
-
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-            viewMonth--;
-            if (viewMonth < 0) {
-                viewMonth = 11;
-                viewYear--;
-            }
-            activeCategoryFilter = null; // Clear filter on change
-            renderAndPopulate();
-        });
-    }
-
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            viewMonth++;
-            if (viewMonth > 11) {
-                viewMonth = 0;
-                viewYear++;
-            }
-            activeCategoryFilter = null;
-            renderAndPopulate();
-        });
-    }
-
-    // Helper to highlight selected category in the list
-    function updateCategorySelectionUI() {
-        // Wait briefly for DOM update if coming from renderChart, or just run
-        setTimeout(() => {
-            const listContainer = document.getElementById('kakeibo-category-list');
-            if (!listContainer) return;
-            const items = listContainer.querySelectorAll('.category-list-item');
-            items.forEach(el => {
-                // Reset basic styles first
-                el.style.background = 'transparent';
-                el.style.borderLeft = 'none';
-
-                if (activeCategoryFilter && el.dataset.category === activeCategoryFilter) {
-                    el.style.background = '#f1f5f9'; // Slight grey/blue
-                    el.style.borderLeft = '4px solid var(--primary-color)';
-                    el.style.paddingLeft = '8px'; // Add some padding for the border
-                } else {
-                    el.style.paddingLeft = '4px';
-                }
-            });
-        }, 0);
-    }
-
-    function populateEntries() {
-        if (!entriesDiv) return;
-        // Use viewYear/viewMonth instead of now
-        let items = Kakeibo.getMonthlyEntries(viewYear, viewMonth);
-
-        let headerHtml = '';
-
-        // Filter by category if one is selected
-        if (activeCategoryFilter) {
-            items = items.filter(it => it.category === activeCategoryFilter);
-            headerHtml = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border-left: 4px solid var(--primary-color);">
-                    <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary);">フィルタ: ${activeCategoryFilter}</span>
-                    <button class="btn-clear-filter" style="background: none; border: none; font-size: 0.8rem; color: var(--text-tertiary); cursor: pointer; text-decoration: underline;">解除</button>
-                </div>
-            `;
-        }
-
-        if (!items || items.length === 0) {
-            const msg = activeCategoryFilter
-                ? `「${activeCategoryFilter}」の履歴はありません`
-                : 'データなし';
-            entriesDiv.innerHTML = headerHtml + `<div style="color:var(--text-secondary); text-align:center; padding:1rem;">${msg}</div>`;
-        } else {
-            items.sort((a, b) => new Date(b.date) - new Date(a.date));
-            const entriesHtml = items.map(it => {
-                const [y, m, d] = it.date.split('-').map(Number);
-                const day = d;
-                const isIncome = it.type === 'income';
-                return `
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border-radius:8px; margin-bottom:8px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
-                        <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:0.8rem; color:var(--text-tertiary);">${day}日 · ${it.category}</span>
-                            <span style="font-size:0.9rem; font-weight:500;">${it.note || '-'}</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="font-weight:700; color:${isIncome ? 'var(--success-color)' : 'var(--text-primary)'}; font-size:1rem;">${isIncome ? '+' : ''}￥${Number(it.amount).toLocaleString()}</span>
-                            <button class="btn-del-k" data-id="${it.id}" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:1.2rem;">×</button>
-                        </div>
-                    </div>`;
-            }).join('');
-            entriesDiv.innerHTML = headerHtml + entriesHtml;
-        }
-
-        // Attach listener for clear button dynamically
-        const clearBtn = entriesDiv.querySelector('.btn-clear-filter');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                activeCategoryFilter = null;
-                updateCategorySelectionUI();
-                populateEntries();
-            });
-        }
-    }
-
-    // Event delegation for category list clicks
-    const listContainer = document.getElementById('kakeibo-category-list');
-    if (listContainer) {
-        // Remove previous listener if any (conceptually, though simple replacement works here)
-        // using a flag or just adding it once? setupKakeiboInteractions is called once on init.
-        listContainer.addEventListener('click', (e) => {
-            const item = e.target.closest('.category-list-item');
-            if (item) {
-                const cat = item.dataset.category;
-                if (activeCategoryFilter === cat) {
-                    activeCategoryFilter = null; // Toggle off
-                } else {
-                    activeCategoryFilter = cat;
-                }
-                updateCategorySelectionUI();
-                populateEntries();
-            }
-        });
-    }
-
-    if (entriesDiv) entriesDiv.addEventListener('click', (e) => {
-        const b = e.target.closest('.btn-del-k');
-        if (b && confirm('削除しますか？')) {
-            Kakeibo.delete(b.dataset.id);
-            renderAndPopulate();
-        }
-    });
-
-    if (modeSelect) modeSelect.addEventListener('change', renderAndPopulate);
-    window.renderKakeiboView = renderAndPopulate;
-    renderAndPopulate(); // Initial
-}
-
-function setupNotesInteractions() {
-    const form = document.getElementById('note-form');
-    const imageInput = document.getElementById('note-image-input');
-    const preview = document.getElementById('note-image-preview');
-    let currentImageData = null;
-
-    if (!form) return;
-
-    function render() {
-        Notes.render();
-    }
-
-    imageInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            currentImageData = event.target.result;
-            preview.textContent = file.name;
-        };
-        reader.readAsDataURL(file);
-    });
-
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const title = document.getElementById('note-title').value;
-        const content = document.getElementById('note-content').value;
-        const date = document.getElementById('note-date').value || getTodayString();
-
-        if (!content && !title && !currentImageData) return;
-
-        Notes.save({
-            title,
-            content,
-            date,
-            image: currentImageData
-        });
-
-        form.reset();
-        preview.textContent = '';
-        currentImageData = null;
-        document.getElementById('note-date').value = getTodayString();
-    });
-
-    window.openImageModal = (src) => {
-        const modal = document.getElementById('image-modal');
-        const modalImg = document.getElementById('img01');
-        if (!modal || !modalImg) return;
-        modal.style.display = "flex";
-        modalImg.src = src;
-    };
-
-    window.closeImageModal = () => {
-        const modal = document.getElementById('image-modal');
-        if (modal) modal.style.display = "none";
-    };
-
-    window.deleteNote = (id) => {
-        if (confirm('この付箋を削除しますか？')) {
-            Notes.delete(id);
-        }
-    };
-
-    window.renderNotesView = render;
-    render();
-}
+    // Removed kakeibo and notes
 
 

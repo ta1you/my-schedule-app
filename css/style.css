@@ -104,7 +104,6 @@ body.has-wallpaper::before {
 /* Glassmorphism for Wallpaper Mode */
 /* Make main containers transparent so the blur doesn't stack too much */
 body.has-wallpaper .settings-view,
-body.has-wallpaper .finance-view,
 body.has-wallpaper #main-content {
     background: transparent !important;
 }
@@ -116,10 +115,7 @@ body.has-wallpaper .calendar-month,
 body.has-wallpaper .weekly-grid,
 body.has-wallpaper .note-card,
 body.has-wallpaper [id$="-form"],
-body.has-wallpaper form,
-body.has-wallpaper .finance-summary-card,
-body.has-wallpaper .journal-list > div,
-body.has-wallpaper #kakeibo-legend {
+body.has-wallpaper form {
     background: rgba(255, 255, 255, 0.45) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
@@ -2094,12 +2090,10 @@ input:checked+.slider:before {
 
 .ios-timeline-area {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: visible;
     position: relative;
     background: white;
     padding-bottom: 50px;
-    height: 60vh; /* Force height so it scrolls on mobile */
-    min-height: 400px;
 }
 
 .ios-timeline-grid {

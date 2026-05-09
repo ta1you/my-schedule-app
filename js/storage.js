@@ -41,8 +41,21 @@ export const Storage = {
                     collectionRef.doc(item.id).set(item);
                 });
             } else {
-                // Update local cache with remote data
-                schedules = remoteSchedules;
+                // 1. ローカルにのみ存在し、クラウドにない予定（保存漏れなど）を抽出
+                const localOnlyItems = schedules.filter(localItem => 
+                    !remoteSchedules.some(remoteItem => remoteItem.id === localItem.id)
+                );
+
+                // 2. クラウドに保存し直す（再試行）
+                if (localOnlyItems.length > 0) {
+                    console.log('Syncing unsaved local items to cloud...');
+                    localOnlyItems.forEach(item => {
+                        collectionRef.doc(item.id).set(item).catch(err => console.error('Rescue save failed', err));
+                    });
+                }
+
+                // 3. クラウドのデータと、ローカルにしかないデータをマージして消滅を防ぐ
+                schedules = [...remoteSchedules, ...localOnlyItems];
                 this._updateState();
             }
         });
@@ -208,6 +221,33 @@ export const Storage = {
             return true;
         } catch (e) {
             console.error('Restore failed', e);
+            return false;
+        }
+    },
+
+    // --- Merge Local to Cloud (For QR Sync) ---
+    async mergeLocalToCloud(newUid) {
+        if (!newUid || !db) return false;
+        try {
+            console.log('Merging local schedules to new UID:', newUid);
+            const collectionRef = db.collection('users').doc(newUid).collection('schedules');
+            
+            // Loop through local cache and upload each
+            const batch = db.batch();
+            let count = 0;
+            
+            schedules.forEach(item => {
+                const docRef = collectionRef.doc(item.id);
+                batch.set(docRef, item, { merge: true }); // Merge to avoid overwriting newer cloud data if conflict
+                count++;
+            });
+            
+            if (count > 0) {
+                await batch.commit();
+            }
+            return true;
+        } catch (e) {
+            console.error('Merge to cloud failed', e);
             return false;
         }
     }
