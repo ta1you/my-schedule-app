@@ -8,7 +8,7 @@ import { CustomTabs } from './customTabs.js';
 import { ShareFeature } from './share.js';
 import { ScheduleImportManager } from './import.js?v=2';
 import { Notifications } from './notifications.js';
-import { setupQRSyncInteractions } from './qrSync.js';
+
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ShareFeature.init();
     ScheduleImportManager.init();
-    setupQRSyncInteractions();
+
 
     // CustomTabs setup happens in setupEventListeners where setView is accessible
     
